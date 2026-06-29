@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#6D1A36"/>
+<title>Ms. Pierre's IB Command Center</title>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --burg:#6D1A36;--burg-dark:#4e1227;--burg-mid:#8a2245;--burg-light:#f5e8ed;
+  --gold:#C9A84C;--gold-light:#fdf6e3;--gold-dark:#a07c2a;
+  --bg:#FAF8F4;--surface:#fff;--text:#1C1C2E;--muted:#6b7280;--border:#e5e0d8;
+  --success:#2d7a4f;--success-light:#e6f4ed;
+  --warn:#b45309;--warn-light:#fef3c7;
+  --danger:#be123c;--danger-light:#ffe4e6;
+  --info:#1d4ed8;--info-light:#dbeafe;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+h1,h2{font-family:'Playfair Display',serif}
+button,input,select,textarea{font-family:'Inter',sans-serif}
+button{cursor:pointer;border:none;outline:none}
+input,select,textarea{outline:none}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;min-height:100vh}
+#layout{display:flex;flex:1;min-height:0}
+#sidebar{width:224px;background:var(--surface);border-right:1px solid var(--border);padding:14px 0;flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column}
+#main{flex:1;padding:26px 30px;overflow-y:auto}
+
+/* BANNER */
+#banner{position:relative;overflow:hidden;background:var(--burg);min-height:112px}
+#banner svg{position:absolute;inset:0;width:100%;height:100%;opacity:.17}
+.banner-line{position:absolute;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),var(--burg-mid),var(--gold))}
+#banner-content{position:relative;z-index:2;display:flex;align-items:center;gap:20px;padding:18px 32px}
+#bitmoji-slot{width:72px;height:72px;border-radius:50%;border:3px solid var(--gold);background:var(--burg-mid);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 4px var(--burg-dark);overflow:hidden;cursor:pointer;position:relative}
+#bitmoji-slot img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+#bitmoji-slot span{font-size:9px;color:var(--gold);font-weight:700;text-align:center;line-height:1.4}
+#bitmoji-input{display:none}
+#banner-info{flex:1}
+#banner-eyebrow{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px}
+#banner-h1{font-size:26px;font-weight:900;color:#fff;line-height:1.1}
+#banner-date{font-size:12px;color:rgba(255,255,255,.6);margin-top:4px}
+#cavaliers{text-align:center;flex-shrink:0}
+#cav-circle{width:54px;height:54px;border-radius:50%;border:2px solid var(--gold);background:rgba(201,168,76,.15);display:flex;align-items:center;justify-content:center}
+#cav-circle span{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);font-weight:900}
+#cav-label{font-size:9px;color:var(--gold);font-weight:700;letter-spacing:1px;margin-top:3px}
+
+/* PULSE */
+#pulse{background:var(--burg-dark);color:#fff;padding:10px 24px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.pulse-eyebrow{font-family:'Playfair Display',serif;font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;white-space:nowrap}
+.pulse-item{display:flex;align-items:center;gap:8px}
+.pulse-val{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.pulse-name{font-size:9px;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.pulse-sub{font-size:10px;color:rgba(255,255,255,.7);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sy-wrap{margin-left:auto;display:flex;align-items:center;gap:8px}
+.sy-mini{padding:3px 8px;border-radius:6px;border:none;font-size:11px;font-family:'Inter',sans-serif}
+#sy-toggle-btn{background:none;border:1px solid rgba(201,168,76,.4);color:var(--gold);border-radius:6px;padding:3px 10px;font-size:11px}
+#sy-fields{display:none;align-items:center;gap:6px}
+.sy-arrow{color:var(--gold)}
+
+/* NAV */
+.nav-btn{width:100%;display:flex;align-items:center;gap:9px;padding:10px 18px;background:transparent;border:none;border-left:3px solid transparent;color:var(--muted);font-weight:500;font-size:12px;text-align:left;transition:all .12s}
+.nav-btn:hover{background:var(--burg-light);color:var(--burg)}
+.nav-btn.active{background:var(--burg-light);border-left:3px solid var(--burg);color:var(--burg);font-weight:700}
+.nav-icon{font-size:13px;width:16px;flex-shrink:0}
+#sidebar-note{margin:auto 14px 14px;padding:11px;background:var(--gold-light);border-radius:10px;border:1px solid rgba(201,168,76,.35)}
+#sidebar-note-title{font-size:9px;font-weight:800;color:var(--gold-dark);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+#sidebar-note-body{font-size:10px;color:var(--muted);line-height:1.5}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:999;pointer-events:none}
+#toast.show{opacity:1}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:1000}
+.spinner{width:44px;height:44px;border-radius:50%;border:4px solid var(--burg);border-top-color:transparent;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-text{color:var(--burg);font-weight:700;font-size:14px}
+
+/* SECTION */
+.sec-title{font-size:20px;font-weight:900;color:var(--burg)}
+.sec-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.sec-header{margin-bottom:20px}
+
+/* CARD */
+.card{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:18px}
+.card-table{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:9px 13px;text-align:left;font-size:10px;font-weight:700;color:var(--burg);background:var(--burg-light);white-space:nowrap}
+td{padding:9px 13px;border-top:1px solid var(--border);vertical-align:middle}
+tr:nth-child(odd) td{background:#fff}
+tr:nth-child(even) td{background:var(--bg)}
+
+/* INLINE EDIT */
+.editable{cursor:pointer;border-bottom:1px dashed var(--border);padding:2px 4px;border-radius:4px;min-width:40px;display:inline-block}
+.editable:hover{background:var(--burg-light);border-bottom-color:var(--burg)}
+.editable:focus{outline:none;background:var(--burg-light);border-bottom:2px solid var(--burg)}
+.inline-input{border:none;border-bottom:2px solid var(--burg);background:var(--burg-light);padding:2px 6px;border-radius:4px 4px 0 0;font-size:12px;font-family:'Inter',sans-serif;width:100%;min-width:80px}
+.inline-input:focus{outline:none}
+.inline-select{border:1px solid var(--burg);background:#fff;padding:3px 6px;border-radius:6px;font-size:11px;font-family:'Inter',sans-serif}
+
+/* FORM PANEL */
+.form-panel{background:var(--burg-light);border:1px solid rgba(109,26,54,.2);border-radius:12px;padding:18px;margin-bottom:16px}
+.form-panel-title{font-weight:700;font-size:13px;color:var(--burg);margin-bottom:12px}
+.form-grid{display:grid;gap:10px}
+.form-grid-2{grid-template-columns:1fr 1fr}
+.form-grid-3{grid-template-columns:1fr 1fr 1fr}
+.form-grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
+
+/* CONTROLS */
+.inp{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;width:100%;background:#fff}
+.inp:focus{border-color:var(--burg)}
+select.inp{background:#fff}
+textarea.inp{resize:vertical}
+.btn{border:none;border-radius:8px;font-weight:600;font-size:12px;padding:6px 14px;transition:opacity .15s}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-primary{background:var(--burg);color:#fff}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-ghost{background:var(--border);color:var(--text)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-sm{font-size:11px;padding:4px 10px}
+.pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;border:none;transition:all .12s}
+.pill-on{background:var(--burg);color:#fff}
+.pill-off{background:var(--border);color:var(--muted)}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.bdot{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+/* PBAR */
+.pbar{background:var(--border);border-radius:6px;height:7px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:6px;transition:width .4s}
+
+/* FLEX / GRID UTILS */
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}
+.justify-between{justify-content:space-between}.gap-6{gap:6px}.gap-8{gap:8px}
+.gap-10{gap:10px}.gap-12{gap:12px}.gap-14{gap:14px}.gap-16{gap:16px}
+.flex-wrap{flex-wrap:wrap}.flex-1{flex:1}.ml-auto{margin-left:auto}
+.mb-8{margin-bottom:8px}.mb-10{margin-bottom:10px}.mb-12{margin-bottom:12px}
+.mb-14{margin-bottom:14px}.mb-16{margin-bottom:16px}.mb-18{margin-bottom:18px}
+.mb-20{margin-bottom:20px}.mb-22{margin-bottom:22px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px}
+.fw-600{font-weight:600}.fw-700{font-weight:700}.fw-800{font-weight:800}
+.fs-11{font-size:11px}.fs-12{font-size:12px}.fs-13{font-size:13px}
+.text-muted{color:var(--muted)}.text-burg{color:var(--burg)}.text-danger{color:var(--danger)}
+.hidden{display:none!important}
+.w-full{width:100%}
+.ov-auto{overflow-x:auto}
+.stat-big{font-size:28px;font-weight:900;font-family:'Playfair Display',serif}
+
+/* KANBAN */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.k-head{font-size:11px;font-weight:700;padding:7px 12px;border-radius:8px 8px 0 0;text-transform:uppercase;letter-spacing:.8px}
+.k-body{background:var(--bg);border-radius:0 0 8px 8px;padding:10px;min-height:100px;display:flex;flex-direction:column;gap:8px}
+
+/* NOTE CARD */
+.note-card{border-left:4px solid var(--burg)}
+.ann-card{border-left:4px solid var(--burg)}
+
+/* AI BOX */
+.ai-box{background:var(--burg-light);border:1px solid rgba(109,26,54,.2);border-radius:12px;padding:18px;margin-bottom:22px}
+.ai-result{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;margin-top:12px}
+
+/* RESOURCE CARD */
+.res-card{border-top:3px solid var(--burg)}
+
+/* TAB */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* EMPTY STATE */
+.empty{padding:20px;text-align:center;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><div class="load-text">Loading Ms. Pierre's IB Command Center…</div></div>
+<div id="toast"></div>
+
+<div id="app">
+  <!-- BANNER -->
+  <div id="banner">
+    <svg viewBox="0 0 1200 112" preserveAspectRatio="none">
+      <polygon points="0,0 200,0 150,112 0,112" fill="#C9A84C"/>
+      <polygon points="180,0 380,0 330,112 130,112" fill="#fff"/>
+      <polygon points="1200,0 1000,0 1050,112 1200,112" fill="#C9A84C"/>
+      <polygon points="1020,0 820,0 870,112 1070,112" fill="#fff"/>
+      <rect x="500" y="-20" width="60" height="155" transform="rotate(15,530,55)" fill="#C9A84C"/>
+      <rect x="680" y="-20" width="30" height="155" transform="rotate(-10,695,55)" fill="#fff"/>
+      <circle cx="600" cy="56" r="82" fill="none" stroke="#C9A84C" stroke-width="2"/>
+      <circle cx="600" cy="56" r="56" fill="none" stroke="#fff" stroke-width="1"/>
+    </svg>
+    <div class="banner-line" style="top:0"></div>
+    <div class="banner-line" style="bottom:0"></div>
+    <div id="banner-content">
+      <div id="bitmoji-slot" onclick="document.getElementById('bitmoji-input').click()" title="Click to add your bitmoji">
+        <img id="bitmoji-img" style="display:none"/>
+        <span id="bitmoji-placeholder">TAP TO<br>ADD<br>BITMOJI</span>
+      </div>
+      <input type="file" id="bitmoji-input" accept="image/*" onchange="loadBitmoji(event)"/>
+      <div id="banner-info">
+        <div id="banner-eyebrow">New Renaissance Middle School · MYP Grades 6–8</div>
+        <h1 id="banner-h1">Ms. Pierre's IB Command Center</h1>
+        <div id="banner-date"></div>
+      </div>
+      <div id="cavaliers">
+        <div id="cav-circle"><span>C</span></div>
+        <div id="cav-label">CAVALIERS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PULSE BAR -->
+  <div id="pulse">
+    <span class="pulse-eyebrow">IB PULSE</span>
+    <div class="pulse-item">
+      <span class="pulse-val" id="pv-dl" style="color:var(--gold)">—</span>
+      <div><div class="pulse-name">Next Deadline</div><div class="pulse-sub" id="ps-dl">—</div></div>
+    </div>
+    <div class="pulse-item">
+      <span class="pulse-val" id="pv-pl" style="color:var(--gold)">0%</span>
+      <div><div class="pulse-name">Planners Approved</div><div class="pulse-sub" id="ps-pl">0/0</div></div>
+    </div>
+    <div class="pulse-item">
+      <span class="pulse-val" id="pv-pd" style="color:var(--gold)">0%</span>
+      <div><div class="pulse-name">Staff Trained</div><div class="pulse-sub" id="ps-pd">0/0</div></div>
+    </div>
+    <div class="pulse-item">
+      <span class="pulse-val" id="pv-sy" style="color:var(--gold)">0%</span>
+      <div><div class="pulse-name">School Year</div><div class="pulse-sub" id="ps-sy">—</div></div>
+    </div>
+    <div id="sy-wrap">
+      <button id="sy-toggle-btn" onclick="toggleSY(true)">✏ School Year</button>
+      <div id="sy-fields">
+        <input type="date" id="sy-start" class="sy-mini"/>
+        <span class="sy-arrow">→</span>
+        <input type="date" id="sy-end" class="sy-mini"/>
+        <button class="btn btn-gold sy-mini" onclick="saveSY()">Save</button>
+        <button class="btn btn-ghost sy-mini" onclick="toggleSY(false)">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div id="layout">
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <button class="nav-btn active" id="nav-overview"    onclick="go('overview')">   <span class="nav-icon">📊</span>Overview</button>
+      <button class="nav-btn"        id="nav-projects"    onclick="go('projects')">   <span class="nav-icon">💪🏾</span>Pierre's Projects</button>
+      <button class="nav-btn"        id="nav-calendar"    onclick="go('calendar')">   <span class="nav-icon">📅</span>IB Calendar</button>
+      <button class="nav-btn"        id="nav-mypd"        onclick="go('mypd')">       <span class="nav-icon">📚</span>PLC Log</button>
+      <button class="nav-btn"        id="nav-planners"    onclick="go('planners')">   <span class="nav-icon">📋</span>Unit Planners</button>
+      <button class="nav-btn"        id="nav-impl"        onclick="go('impl')">       <span class="nav-icon">🎯</span>MYP Implementation</button>
+      <button class="nav-btn"        id="nav-pd"          onclick="go('pd')">         <span class="nav-icon">🏫</span>PD & Compliance</button>
+      <button class="nav-btn"        id="nav-stakeholder" onclick="go('stakeholder')"><span class="nav-icon">🤝</span>Stakeholder Log</button>
+      <button class="nav-btn"        id="nav-family"      onclick="go('family')">     <span class="nav-icon">💬</span>Family Comms</button>
+      <button class="nav-btn"        id="nav-notes"       onclick="go('notes')">      <span class="nav-icon">🗒️</span>Meeting Notes</button>
+      <button class="nav-btn"        id="nav-resources"   onclick="go('resources')">  <span class="nav-icon">🔗</span>Resources</button>
+
+      <div id="sidebar-note">
+        <div id="sidebar-note-title">☁ Cloud Saved</div>
+        <div id="sidebar-note-body">All changes save to Supabase instantly — open on any device.</div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="main">
+      <div id="tab-overview"      class="tab-content active"></div>
+      <div id="tab-planners"      class="tab-content"></div>
+      <div id="tab-impl"          class="tab-content"></div>
+      <div id="tab-pd"            class="tab-content"></div>
+      <div id="tab-projects"      class="tab-content"></div>
+      <div id="tab-calendar"      class="tab-content"></div>
+      <div id="tab-family"        class="tab-content"></div>
+      <div id="tab-mypd"          class="tab-content"></div>
+      <div id="tab-stakeholder"   class="tab-content"></div>
+      <div id="tab-notes"         class="tab-content"></div>
+      <div id="tab-resources"     class="tab-content"></div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────────────────────
+const SB_URL = 'https://vcakvhwtaepijzofdaso.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjYWt2aHd0YWVwaWp6b2ZkYXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NzY5NDYsImV4cCI6MjA5ODI1Mjk0Nn0.24NWV3TcgD2kSYBTm8mBCZJLQYmFSQH5M8bgmCUUw18';
+const H = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPABASE HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+async function sbGet(table, order='id'){
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?order=${order}&select=*`,{headers:H});
+  return r.ok ? r.json() : [];
+}
+async function sbInsert(table, data){
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:H,body:JSON.stringify(data)});
+  const j = await r.json(); return Array.isArray(j)?j[0]:j;
+}
+async function sbUpdate(table, id, data){
+  await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify(data)});
+}
+async function sbDelete(table, id){
+  await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`,{method:'DELETE',headers:H});
+}
+async function sbGetSetting(key){
+  const r = await fetch(`${SB_URL}/rest/v1/settings?key=eq.${key}&select=value`,{headers:H});
+  const j = await r.json(); return j[0]?.value||'';
+}
+async function sbSetSetting(key, value){
+  await fetch(`${SB_URL}/rest/v1/settings?key=eq.${key}`,{method:'PATCH',headers:H,body:JSON.stringify({value})});
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let DB = { teachers:[], planners:[], implData:[], deadlines:[], comms:[], projects:[],
+           myPD:[], stakeholder:[], notes:[], resources:[],
+           schoolYear:{start:'2026-08-18',end:'2027-06-05'},
+           oneDriveLinks:{} };
+let currentTab = 'overview';
+let projView = 'list';
+let plannerGrade = 'All', plannerStatus = 'All', calFilter = 'All';
+let aiResultText = '';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────────────────────────
+const SUBJECTS=['Language & Literature','Language Acquisition','Individuals & Societies','Sciences','Mathematics','Arts','Physical & Health Education','Design'];
+const ATL_OPTIONS=['— Select ATL —','Communication — Exchanging information','Communication — Literacy','Communication — ICT','Social — Collaboration','Social — Interpersonal','Self-Management — Organization','Self-Management — Affective','Self-Management — Reflection','Research — Information literacy','Research — Media literacy','Thinking — Critical thinking','Thinking — Creative thinking','Thinking — Transfer'];
+const GLOBAL_CONTEXTS=['— Select Context —','Identities & Relationships','Orientation in Space & Time','Personal & Cultural Expression','Scientific & Technical Innovation','Globalization & Sustainability','Fairness & Development'];
+const GRADES=['Grade 6','Grade 7','Grade 8'];
+const PLAN_ST=['Not Submitted','Draft Submitted','Under Review','Needs Revision','Approved'];
+const IB_CATS=['Category 1','Category 2','Category 3'];
+const MYP_ASPECTS=['ATL Skills','Global Contexts','Approaches to Teaching','Learner Profile'];
+const IMPL_SCALE=['Not Evident','Developing','Consistent','Exemplary'];
+const PROJ_ST=['Not Started','Submitted for Approval','Approved by Administrator','In Progress','Completed'];
+const PRIORITIES=['Low','Medium','High','Critical'];
+const DL_TYPES=['IB','BCPS','New Renaissance'];
+const PD_TYPES=['IB Workshop','Conference','Webinar','District PD','Self-Study','Collaborative Planning'];
+const COMM_METHODS=['Email','Letter','Phone Call','In Person','Portal'];
+const COMM_ST=['Sent','Pending','Needs Follow-Up'];
+const RES_CATS=['IB Documents','BCPS Policies','Forms','Curriculum Guides','Training Materials','Other'];
+const NOTE_TAGS=['General','Follow-Up','Observation','Decision','Reminder','IB','BCPS'];
+const AUDIENCES=['All Staff','IB Teachers','Admin','Families','Students','All'];
+const ANN_ST=['Draft','Ready to Send','Sent','Archived'];
+
+const SC = {
+  'Not Submitted':  {bg:'#f3f4f6',t:'#374151',d:'#9ca3af'},
+  'Draft Submitted':{bg:'var(--info-light)',t:'var(--info)',d:'var(--info)'},
+  'Under Review':   {bg:'var(--warn-light)',t:'var(--warn)',d:'var(--warn)'},
+  'Needs Revision': {bg:'var(--danger-light)',t:'var(--danger)',d:'var(--danger)'},
+  'Approved':       {bg:'var(--success-light)',t:'var(--success)',d:'var(--success)'},
+};
+const IC={
+  'Not Evident':{bg:'var(--danger-light)',t:'var(--danger)'},
+  'Developing': {bg:'var(--warn-light)',t:'var(--warn)'},
+  'Consistent': {bg:'var(--info-light)',t:'var(--info)'},
+  'Exemplary':  {bg:'var(--success-light)',t:'var(--success)'},
+};
+const PSC={
+  'Not Started':               {bg:'#f3f4f6',t:'#374151'},
+  'Submitted for Approval':    {bg:'var(--info-light)',t:'var(--info)'},
+  'Approved by Administrator': {bg:'var(--gold-light)',t:'var(--gold-dark)'},
+  'In Progress':               {bg:'var(--warn-light)',t:'var(--warn)'},
+  'Completed':                 {bg:'var(--success-light)',t:'var(--success)'},
+};
+const PC={
+  'Low':     {bg:'var(--info-light)',t:'var(--info)'},
+  'Medium':  {bg:'var(--warn-light)',t:'var(--warn)'},
+  'High':    {bg:'var(--danger-light)',t:'var(--danger)'},
+  'Critical':{bg:'#fce7f3',t:'#9d174d'},
+};
+const DTC={IB:{bg:'var(--burg-light)',t:'var(--burg)'},BCPS:{bg:'var(--gold-light)',t:'var(--gold-dark)'},'New Renaissance':{bg:'#f0fdf4',t:'#166534'}};
+const ASC={'Draft':{bg:'var(--bg)',t:'var(--muted)'},'Ready to Send':{bg:'var(--warn-light)',t:'var(--warn)'},'Sent':{bg:'var(--success-light)',t:'var(--success)'},'Archived':{bg:'var(--info-light)',t:'var(--info)'}};
+const NTC={'General':'var(--muted)','Follow-Up':'var(--danger)','Observation':'var(--info)','Decision':'var(--success)','Reminder':'var(--warn)','IB':'var(--burg)','BCPS':'var(--gold-dark)'};
+const RCC={'IB Documents':{bg:'var(--burg-light)',t:'var(--burg)'},'BCPS Policies':{bg:'var(--gold-light)',t:'var(--gold-dark)'},'Forms':{bg:'var(--info-light)',t:'var(--info)'},'Curriculum Guides':{bg:'var(--success-light)',t:'var(--success)'},'Training Materials':{bg:'var(--warn-light)',t:'var(--warn)'},'Other':{bg:'var(--bg)',t:'var(--muted)'}};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────────────────────────────────────
+function e(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function badge(label,c,dot){return `<span class="badge" style="background:${c.bg||c};color:${c.t||c.text||'#333'}">${dot?`<span class="bdot" style="background:${dot}"></span>`:''}${e(label)}</span>`}
+function selOpts(opts,val){return opts.map(o=>`<option${o===val?' selected':''}>${e(o)}</option>`).join('')}
+function toast(msg,ok=true){const t=document.getElementById('toast');t.textContent=msg;t.style.background=ok?'var(--success)':'var(--danger)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOAD ALL DATA
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadAll(){
+  const [teachers,planners,implData,deadlines,comms,projects,myPD,stakeholder,notes,resources,syStart,syEnd] = await Promise.all([
+    sbGet('teachers'), sbGet('planners'), sbGet('impl_data'), sbGet('deadlines'),
+    sbGet('comms'), sbGet('projects'), sbGet('my_pd'), sbGet('stakeholder_log'),
+    sbGet('notes','id.desc'), sbGet('resources'),
+    sbGetSetting('school_year_start'), sbGetSetting('school_year_end'),
+  ]);
+
+  // Seed planners if none exist
+  if(planners.length===0){
+    const seedRows = SUBJECTS.flatMap(s=>GRADES.map(g=>({id:`${s}-${g}`,subject:s,grade:g,unit_title:'',teacher:'',status:'Not Submitted',atl:'',global_context:'',last_updated:''})));
+    try{
+      const res = await fetch(`${SB_URL}/rest/v1/planners`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(seedRows)});
+      DB.planners = seedRows;
+    } catch(e){ DB.planners = seedRows; }
+  } else { DB.planners = planners; }
+
+  // Seed impl_data for any teachers missing it
+  const implTeacherIds = implData.map(r=>r.teacher_id);
+  const missingImpl = teachers.filter(t=>!implTeacherIds.includes(t.id));
+  if(missingImpl.length>0){
+    const newImpl = await Promise.all(missingImpl.map(t=>sbInsert('impl_data',{teacher_id:t.id,atl_skills:'Not Evident',global_contexts:'Not Evident',approaches_to_teaching:'Not Evident',learner_profile:'Not Evident',notes:'',last_observed:''})));
+    DB.implData = [...implData,...newImpl];
+  } else { DB.implData = implData; }
+
+  DB.teachers=teachers; DB.deadlines=deadlines; DB.comms=comms;
+  DB.projects=projects; DB.myPD=myPD; DB.stakeholder=stakeholder;
+  DB.notes=notes; DB.resources=resources;
+  DB.schoolYear={start:syStart||'2026-08-18',end:syEnd||'2027-06-05'};
+  document.getElementById('sy-start').value=DB.schoolYear.start;
+  document.getElementById('sy-end').value=DB.schoolYear.end;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────────────────────────────────────
+function go(tab){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('active');
+  currentTab=tab;
+  const renders={overview:renderOverview,planners:renderPlanners,impl:renderImpl,pd:renderPD,
+    projects:renderProjects,calendar:renderCalendar,family:renderFamily,mypd:renderMyPD,
+    stakeholder:renderStakeholder,notes:renderNotes,resources:renderResources};
+  if(renders[tab]) renders[tab]();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PULSE BAR
+// ─────────────────────────────────────────────────────────────────────────────
+function updatePulse(){
+  const today=new Date();
+  const start=new Date(DB.schoolYear.start),end=new Date(DB.schoolYear.end);
+  const total=Math.round((end-start)/86400000);
+  const elapsed=Math.max(0,Math.round((today-start)/86400000));
+  const syPct=Math.min(100,Math.round((elapsed/Math.max(1,total))*100));
+  const upcoming=DB.deadlines.map(d=>({...d,dO:new Date(d.date)})).filter(d=>d.dO>=today).sort((a,b)=>a.dO-b.dO)[0];
+  const daysUntil=upcoming?Math.ceil((upcoming.dO-today)/86400000):null;
+  const approved=DB.planners.filter(p=>p.status==='Approved').length;
+  const planPct=Math.round((approved/Math.max(1,DB.planners.length))*100);
+  const fullyT=DB.teachers.filter(t=>t.cat1&&t.cat2&&t.cat3).length;
+  const pdPct=Math.round((fullyT/Math.max(1,DB.teachers.length))*100);
+  const dlColor=daysUntil===null?'var(--gold)':daysUntil<=7?'var(--danger)':daysUntil<=14?'#f59e0b':'var(--gold)';
+  document.getElementById('pv-dl').textContent=daysUntil!==null?daysUntil+'d':'—';
+  document.getElementById('pv-dl').style.color=dlColor;
+  document.getElementById('ps-dl').textContent=upcoming?upcoming.title:'None upcoming';
+  document.getElementById('pv-pl').textContent=planPct+'%';
+  document.getElementById('pv-pl').style.color=planPct>=80?'var(--gold)':'var(--danger)';
+  document.getElementById('ps-pl').textContent=approved+'/'+DB.planners.length;
+  document.getElementById('pv-pd').textContent=pdPct+'%';
+  document.getElementById('pv-pd').style.color=pdPct>=80?'var(--gold)':'var(--danger)';
+  document.getElementById('ps-pd').textContent=fullyT+'/'+DB.teachers.length+' teachers';
+  document.getElementById('pv-sy').textContent=syPct+'%';
+  document.getElementById('ps-sy').textContent='Day '+elapsed+' of '+total;
+}
+function toggleSY(show){
+  document.getElementById('sy-toggle-btn').style.display=show?'none':'';
+  document.getElementById('sy-fields').style.display=show?'flex':'none';
+}
+async function saveSY(){
+  const s=document.getElementById('sy-start').value;
+  const en=document.getElementById('sy-end').value;
+  await Promise.all([sbSetSetting('school_year_start',s),sbSetSetting('school_year_end',en)]);
+  DB.schoolYear={start:s,end:en};
+  toggleSY(false);updatePulse();toast('School year updated');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BITMOJI
+// ─────────────────────────────────────────────────────────────────────────────
+function loadBitmoji(evt){
+  const file=evt.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('bitmoji-img').src=e.target.result;
+    document.getElementById('bitmoji-img').style.display='block';
+    document.getElementById('bitmoji-placeholder').style.display='none';
+    localStorage.setItem('ib_bitmoji',e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INLINE EDIT HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function makeEditable(el, currentVal, onSave, type='text'){
+  el.innerHTML='';
+  let input;
+  if(type==='select'){
+    input=el._selectOpts||'';
+  } else {
+    input=document.createElement('input');
+    input.className='inline-input';input.value=currentVal;input.type=type;
+    input.style.width=Math.max(80,currentVal.length*8+20)+'px';
+    el.appendChild(input);input.focus();input.select();
+    input.addEventListener('blur',()=>onSave(input.value));
+    input.addEventListener('keydown',ev=>{if(ev.key==='Enter')input.blur();if(ev.key==='Escape'){el.textContent=currentVal;}});
+  }
+}
+function inlineCell(val, fn, type='text', opts=null){
+  if(type==='select'&&opts){
+    return `<td><select class="inline-select" onchange="${fn}(this.value,this)">${selOpts(opts,val)}</select></td>`;
+  }
+  return `<td><span class="editable" ondblclick="startInlineEdit(this,'${e(val)}',${fn})" title="Double-click to edit">${e(val)||'<span style="color:var(--border)">—</span>'}</span></td>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OVERVIEW
+// ─────────────────────────────────────────────────────────────────────────────
+function renderOverview(){
+  const today=new Date();
+  const counts=Object.fromEntries(PLAN_ST.map(s=>[s,DB.planners.filter(p=>p.status===s).length]));
+  const totalPlanners=48; // 3 grades x 8 subjects x 2 semesters
+  const approved=counts['Approved']||0;
+  const needsRev=counts['Needs Revision']||0;
+  const notSub=counts['Not Submitted']||0;
+  const draftSub=counts['Draft Submitted']||0;
+  const underRev=counts['Under Review']||0;
+  const fullyT=DB.teachers.filter(t=>t.cat1&&t.cat2&&t.cat3).length;
+  const partialT=DB.teachers.filter(t=>(t.cat1||t.cat2||t.cat3)&&!(t.cat1&&t.cat2&&t.cat3)).length;
+  const noneT=DB.teachers.filter(t=>!t.cat1&&!t.cat2&&!t.cat3).length;
+  const cat1=DB.teachers.filter(t=>t.cat1).length;
+  const cat2=DB.teachers.filter(t=>t.cat2).length;
+  const cat3=DB.teachers.filter(t=>t.cat3).length;
+  const totalHours=DB.teachers.reduce((s,t)=>s+(+t.hours||0),0);
+  const activeP=DB.projects.filter(p=>p.status==='In Progress').length;
+  const upcoming=DB.deadlines.map(d=>({...d,dO:new Date(d.date)})).filter(d=>d.dO>=today).sort((a,b)=>a.dO-b.dO);
+
+  // MYP Implementation counts per aspect
+  const aspectCounts={};
+  MYP_ASPECTS.forEach(a=>{
+    const field=ASPECT_FIELDS[a];
+    aspectCounts[a]={};
+    IMPL_SCALE.forEach(sc=>{aspectCounts[a][sc]=DB.implData.filter(r=>r[field]===sc).length;});
+  });
+
+  document.getElementById('tab-overview').innerHTML=`
+    <div class="sec-header"><div class="sec-title">Overview</div><div class="sec-sub">Your IB program at a glance — all numbers live from your data</div></div>
+
+    <!-- UPCOMING DEADLINES -->
+    <div class="card mb-22" style="border-left:4px solid var(--gold)">
+      <div class="flex justify-between items-center mb-14">
+        <div>
+          <div class="fw-700 fs-13" style="color:var(--gold-dark)">📅 Upcoming Deadlines</div>
+          <div class="text-muted fs-11">${upcoming.length} deadline${upcoming.length!==1?'s':''} on record</div>
+        </div>
+        <button class="btn btn-primary" onclick="go('calendar')">Manage All →</button>
+      </div>
+      ${upcoming.length===0?'<div class="text-muted fs-13">No upcoming deadlines. Go to IB Calendar to add some.</div>':''}
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+        ${upcoming.slice(0,6).map(d=>{
+          const days=Math.ceil((d.dO-today)/86400000);
+          const tc=DTC[d.type]||DTC.IB;
+          const urgColor=days<=7?'var(--danger)':days<=14?'var(--warn)':'var(--text)';
+          return`<div style="display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:10px;padding:10px 14px;border:1px solid var(--border)">
+            <div style="text-align:center;min-width:40px">
+              <div style="font-size:20px;font-weight:900;color:var(--burg);font-family:'Playfair Display',serif">${d.dO.getDate()}</div>
+              <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase">${d.dO.toLocaleString('default',{month:'short'})}</div>
+            </div>
+            <div style="flex:1">
+              <div class="fw-700 fs-12">${e(d.title)}</div>
+              <span class="badge" style="background:${tc.bg};color:${tc.t};margin-top:3px">${e(d.type)}</span>
+            </div>
+            <div style="font-size:13px;font-weight:800;color:${urgColor};white-space:nowrap">${days}d</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- SECTION 1: UNIT PLANNERS -->
+    <div style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:13px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:1px">⊞ Unit Planners</div>
+      <div style="flex:1;height:1px;background:var(--burg-light)"></div>
+      <button class="btn btn-ghost" style="font-size:11px" onclick="go('planners')">View All →</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px">
+      ${[
+        {l:'Total',v:totalPlanners,s:'3 grades × 8 subjects × 2 semesters',c:'var(--burg)'},
+        {l:'Not Submitted',v:notSub,s:`${Math.round((notSub/totalPlanners)*100)}% of planners`,c:'#6b7280'},
+        {l:'Draft Submitted',v:draftSub,s:`${Math.round((draftSub/totalPlanners)*100)}% of planners`,c:'var(--info)'},
+        {l:'Under Review',v:underRev,s:`${Math.round((underRev/totalPlanners)*100)}% of planners`,c:'var(--warn)'},
+        {l:'Needs Revision',v:needsRev,s:`${Math.round((needsRev/totalPlanners)*100)}% of planners`,c:'var(--danger)'},
+        {l:'Approved ✓',v:approved,s:`${Math.round((approved/totalPlanners)*100)}% of planners`,c:'var(--success)'},
+      ].map(s=>`<div class="card" style="border-top:3px solid ${s.c};padding:14px">
+        <div class="stat-big" style="color:${s.c};font-size:26px">${s.v}</div>
+        <div class="fw-700" style="font-size:11px;margin-top:2px">${e(s.l)}</div>
+        <div class="text-muted" style="font-size:10px;margin-top:2px">${e(s.s)}</div>
+      </div>`).join('')}
+    </div>
+    <div class="card mb-22">
+      <div class="fw-700 fs-12 mb-12" style="color:var(--burg)">Planner Completion Progress</div>
+      ${PLAN_ST.map(s=>{
+        const cnt=counts[s]||0;
+        const pct=Math.round((cnt/totalPlanners)*100);
+        return`<div style="margin-bottom:10px">
+          <div class="flex justify-between fs-12 mb-6">
+            <span style="font-weight:600">${e(s)}</span>
+            <span class="text-muted">${cnt} / ${totalPlanners} &nbsp;(${pct}%)</span>
+          </div>
+          <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${SC[s].d}"></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- SECTION 2: MYP IMPLEMENTATION + PROJECTS -->
+    <div style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:13px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:1px">◎ MYP Implementation</div>
+      <div style="flex:1;height:1px;background:var(--burg-light)"></div>
+      <button class="btn btn-ghost" style="font-size:11px" onclick="go('impl')">View All →</button>
+    </div>
+    <div style="display:grid;grid-template-columns:3fr 1fr;gap:14px;margin-bottom:22px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+        ${MYP_ASPECTS.map(a=>{
+          const ac=aspectCounts[a];
+          const exemplary=ac['Exemplary']||0;
+          const consistent=ac['Consistent']||0;
+          const developing=ac['Developing']||0;
+          const notEvident=ac['Not Evident']||0;
+          const total=DB.implData.length||1;
+          const strong=exemplary+consistent;
+          const pct=Math.round((strong/total)*100);
+          return`<div class="card" style="padding:14px">
+            <div style="font-size:10px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">${e(a)}</div>
+            ${[{l:'Exemplary',v:exemplary,c:'var(--success)'},{l:'Consistent',v:consistent,c:'var(--info)'},{l:'Developing',v:developing,c:'var(--warn)'},{l:'Not Evident',v:notEvident,c:'var(--danger)'}]
+              .map(x=>`<div class="flex justify-between items-center" style="margin-bottom:5px">
+                <span style="font-size:11px;color:${x.c};font-weight:600">${x.l}</span>
+                <span style="font-size:13px;font-weight:800;color:${x.c}">${x.v}</span>
+              </div>`).join('')}
+            <div style="margin-top:8px">
+              <div style="font-size:9px;color:var(--muted);margin-bottom:3px">Developing+ (${pct}%)</div>
+              <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${pct>=70?'var(--success)':pct>=40?'var(--warn)':'var(--danger)'}"></div></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="card" style="border-top:3px solid var(--burg-mid);padding:14px;flex:1">
+          <div style="font-size:10px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">◷ IB Projects</div>
+          <div class="stat-big" style="color:var(--burg-mid);font-size:26px">${activeP}</div>
+          <div class="fw-700 fs-11">Active Projects</div>
+          <div class="text-muted" style="font-size:10px;margin-top:2px">${DB.projects.filter(p=>p.status==='Not Started').length} not started · ${DB.projects.filter(p=>p.status==='Completed').length} completed</div>
+          <button class="btn btn-ghost" style="font-size:10px;margin-top:8px;width:100%" onclick="go('projects')">View Projects →</button>
+        </div>
+        <div class="card" style="border-top:3px solid var(--gold-dark);padding:14px">
+          <div style="font-size:10px;font-weight:800;color:var(--gold-dark);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">🤝 Stakeholder Log</div>
+          <div class="stat-big" style="color:var(--gold-dark);font-size:26px">${DB.stakeholder.length}</div>
+          <div class="fw-700 fs-11">Interactions Logged</div>
+          <div class="text-muted" style="font-size:10px;margin-top:2px">${DB.stakeholder.filter(s=>s.follow_up).length} follow-ups pending</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: PD & COMPLIANCE -->
+    <div style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:13px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:1px">✓ PD & Staff Compliance</div>
+      <div style="flex:1;height:1px;background:var(--burg-light)"></div>
+      <button class="btn btn-ghost" style="font-size:11px" onclick="go('pd')">View All →</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px">
+      ${[
+        {l:'Fully Trained',v:fullyT,s:'all 3 categories',c:'var(--success)',bg:'var(--success-light)'},
+        {l:'Partial Training',v:partialT,s:'1–2 categories',c:'var(--warn)',bg:'var(--warn-light)'},
+        {l:'No Training',v:noneT,s:'0 categories',c:'var(--danger)',bg:'var(--danger-light)'},
+        {l:'Category 1',v:cat1+'/'+DB.teachers.length,s:'teachers completed',c:'var(--burg)',bg:'var(--burg-light)'},
+        {l:'Category 2',v:cat2+'/'+DB.teachers.length,s:'teachers completed',c:'var(--burg)',bg:'var(--burg-light)'},
+        {l:'Category 3',v:cat3+'/'+DB.teachers.length,s:'teachers completed',c:'var(--burg)',bg:'var(--burg-light)'},
+        {l:'Total IB Hours',v:totalHours+'h',s:'logged across all staff',c:'var(--gold-dark)',bg:'var(--gold-light)'},
+      ].map(s=>`<div class="card" style="background:${s.bg};border:none;padding:14px">
+        <div class="stat-big" style="color:${s.c};font-size:22px">${s.v}</div>
+        <div class="fw-700" style="font-size:11px;color:${s.c};margin-top:2px">${e(s.l)}</div>
+        <div style="font-size:10px;color:${s.c};opacity:.7;margin-top:2px">${e(s.s)}</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UNIT PLANNERS
+// ─────────────────────────────────────────────────────────────────────────────
+function renderPlanners(){
+  const filtered=DB.planners.filter(p=>(plannerGrade==='All'||p.grade===plannerGrade)&&(plannerStatus==='All'||p.status===plannerStatus));
+  const grouped={};SUBJECTS.forEach(s=>{const items=filtered.filter(p=>p.subject===s);if(items.length)grouped[s]=items;});
+  const grPills=['All',...GRADES].map(g=>`<button class="pill ${plannerGrade===g?'pill-on':'pill-off'}" onclick="setPGrade('${e(g)}')">${e(g)}</button>`).join('');
+  const stPills=['All',...PLAN_ST].map(s=>`<button class="pill ${plannerStatus===s?'pill-on':'pill-off'}" onclick="setPStatus('${e(s)}')">${e(s)}</button>`).join('');
+  const links=DB.oneDriveLinks||{};
+
+  document.getElementById('tab-planners').innerHTML=`
+    <div class="sec-header"><div class="sec-title">Unit Planners</div><div class="sec-sub">MYP Grades 6–8 · All Subject Groups · Double-click Unit Title to edit</div></div>
+    <div class="flex flex-wrap gap-8 mb-18">${grPills}<div style="width:1px;background:var(--border);margin:0 4px"></div>${stPills}</div>
+    ${Object.entries(grouped).map(([subj,items])=>{
+      const subjectKey=subj.replace(/[^a-z0-9]/gi,'_');
+      const savedLink=links[subjectKey]||'';
+      return`<div class="mb-22">
+        <div class="flex items-center gap-10 mb-8">
+          <div class="fw-800 fs-11" style="color:var(--gold-dark);text-transform:uppercase;letter-spacing:1.2px">${e(subj)}</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            ${savedLink
+              ? `<a href="${e(savedLink)}" target="_blank" style="font-size:11px;color:var(--burg);font-weight:700;background:var(--burg-light);padding:3px 10px;border-radius:20px;text-decoration:none">☁ OneDrive →</a>
+                 <button onclick="editSubjectLink('${e(subjectKey)}','${e(subj)}')" style="font-size:10px;background:none;border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--muted);cursor:pointer">Edit</button>`
+              : `<button onclick="editSubjectLink('${e(subjectKey)}','${e(subj)}')" style="font-size:11px;background:none;border:1px dashed var(--border);border-radius:20px;padding:3px 10px;color:var(--muted);cursor:pointer">+ Add OneDrive Link</button>`
+            }
+          </div>
+        </div>
+        <div class="card-table">
+          <table><thead><tr><th>Grade</th><th>Unit Title</th><th>ATL Focus</th><th>Global Context</th><th>Status</th><th>Updated</th><th></th></tr></thead>
+          <tbody>${items.map(p=>`<tr id="pr-${e(p.id)}">
+            <td class="fw-700">${e(p.grade)}</td>
+            <td><span class="editable" ondblclick="editPlannerField('${e(p.id)}','unit_title',this)" title="Double-click to edit">${e(p.unit_title)||'<span style="color:var(--border)">—</span>'}</span></td>
+            <td><select class="inline-select" onchange="updatePlannerField('${e(p.id)}','atl',this.value)" style="max-width:220px">${selOpts(ATL_OPTIONS,p.atl||'— Select ATL —')}</select></td>
+            <td><select class="inline-select" onchange="updatePlannerField('${e(p.id)}','global_context',this.value)">${selOpts(GLOBAL_CONTEXTS,p.global_context||'— Select Context —')}</select></td>
+            <td><select class="inline-select" onchange="updatePlannerStatus('${e(p.id)}',this.value)">${selOpts(PLAN_ST,p.status)}</select></td>
+            <td class="text-muted fs-11">${e(p.last_updated)||'—'}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="deletePlanner('${e(p.id)}')">✕</button></td>
+          </tr>`).join('')}</tbody></table>
+        </div>
+      </div>`;
+    }).join('')}
+    <button class="btn btn-primary" onclick="showPlannerForm()">+ Add Planner Row</button>
+    <div id="planner-form"></div>`;
+}
+function editSubjectLink(key, subjectName){
+  const current=DB.oneDriveLinks[key]||'';
+  const url=prompt(`OneDrive link for ${subjectName}:`, current);
+  if(url===null) return;
+  DB.oneDriveLinks[key]=url.trim();
+  localStorage.setItem('ib_onedrive_links', JSON.stringify(DB.oneDriveLinks));
+  renderPlanners();
+  toast('Link saved');
+}
+function setPGrade(g){plannerGrade=g;renderPlanners();}
+function setPStatus(s){plannerStatus=s;renderPlanners();}
+async function updatePlannerField(id,field,val){
+  const p=DB.planners.find(x=>x.id===id);if(!p)return;
+  const upd={[field]:val,last_updated:new Date().toLocaleDateString()};
+  await sbUpdate('planners',id,upd);
+  p[field]=val;p.last_updated=upd.last_updated;
+  updatePulse();toast('Saved');
+}
+async function editPlannerField(id,field,el){
+  const p=DB.planners.find(x=>x.id===id);if(!p)return;
+  const orig=p[field]||'';
+  const inp=document.createElement('input');
+  inp.className='inline-input';inp.value=orig;
+  inp.style.width=Math.max(100,orig.length*8+30)+'px';
+  el.replaceWith(inp);inp.focus();inp.select();
+  async function save(){
+    const val=inp.value.trim();
+    const upd={[field]:val,last_updated:new Date().toLocaleDateString()};
+    await sbUpdate('planners',id,upd);
+    p[field]=val;p.last_updated=upd.last_updated;
+    renderPlanners();updatePulse();toast('Saved');
+  }
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();if(ev.key==='Escape')renderPlanners();});
+}
+async function updatePlannerStatus(id,val){
+  const p=DB.planners.find(x=>x.id===id);if(!p)return;
+  await sbUpdate('planners',id,{status:val,last_updated:new Date().toLocaleDateString()});
+  p.status=val;updatePulse();toast('Status updated');
+}
+async function deletePlanner(id){
+  if(!confirm('Delete this planner row?'))return;
+  await sbDelete('planners',id);
+  DB.planners=DB.planners.filter(p=>p.id!==id);
+  renderPlanners();toast('Deleted');
+}
+function showPlannerForm(){
+  const el=document.getElementById('planner-form');
+  el.innerHTML=`<div class="form-panel mt-14">
+    <div class="form-panel-title">Add Planner Row</div>
+    <div class="form-grid form-grid-3 mb-10">
+      <select class="inp" id="np-subj">${selOpts(SUBJECTS,SUBJECTS[0])}</select>
+      <select class="inp" id="np-grade">${selOpts(GRADES,GRADES[0])}</select>
+      <select class="inp" id="np-st">${selOpts(PLAN_ST,'Not Submitted')}</select>
+      <input class="inp" id="np-unit" style="grid-column:1/-1"/>
+      <select class="inp" id="np-atl">${selOpts(ATL_OPTIONS,'— Select ATL —')}</select>
+      <select class="inp" id="np-gc">${selOpts(GLOBAL_CONTEXTS,'— Select Context —')}</select>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addPlanner()">Add</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('planner-form').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+  document.getElementById('planner-form').style.marginTop='14px';
+}
+async function addPlanner(){
+  const subj=document.getElementById('np-subj').value;
+  const grade=document.getElementById('np-grade').value;
+  const id=`${subj}-${grade}-${Date.now()}`;
+  const row={id,subject:subj,grade,unit_title:document.getElementById('np-unit').value,
+    teacher:'',status:document.getElementById('np-st').value,
+    atl:document.getElementById('np-atl').value,
+    global_context:document.getElementById('np-gc').value,last_updated:''};
+  const saved=await sbInsert('planners',row);
+  DB.planners.push(saved||row);
+  document.getElementById('planner-form').innerHTML='';
+  renderPlanners();toast('Planner row added');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MYP IMPLEMENTATION
+// ─────────────────────────────────────────────────────────────────────────────
+const ASPECT_FIELDS={'ATL Skills':'atl_skills','Global Contexts':'global_contexts','Approaches to Teaching':'approaches_to_teaching','Learner Profile':'learner_profile'};
+const IMPL_COLORS_MAP={
+  'Exemplary': {bg:'var(--success-light)',t:'var(--success)'},
+  'Consistent':{bg:'var(--info-light)',t:'var(--info)'},
+  'Developing':{bg:'var(--warn-light)',t:'var(--warn)'},
+  'Not Evident':{bg:'var(--danger-light)',t:'var(--danger)'},
+};
+
+function implStatBoxes(rows){
+  // By Subject Area
+  const bySubject=SUBJECTS.map(subj=>{
+    const subjectRows=rows.filter(r=>{const t=DB.teachers.find(x=>x.id===r.teacher_id);return t&&t.subject===subj;});
+    if(!subjectRows.length)return null;
+    const total=subjectRows.length*MYP_ASPECTS.length||1;
+    const exemplary=MYP_ASPECTS.reduce((s,a)=>s+subjectRows.filter(r=>r[ASPECT_FIELDS[a]]==='Exemplary').length,0);
+    const consistent=MYP_ASPECTS.reduce((s,a)=>s+subjectRows.filter(r=>r[ASPECT_FIELDS[a]]==='Consistent').length,0);
+    const strong=exemplary+consistent;
+    const pct=Math.round((strong/total)*100);
+    return{label:subj,exemplary,consistent,pct,total};
+  }).filter(Boolean);
+
+  // By Grade Level
+  const byGrade=GRADES.map(grade=>{
+    const gradeRows=rows.filter(r=>r.grade_level===grade);
+    if(!gradeRows.length)return{label:grade,exemplary:0,consistent:0,pct:0,total:0};
+    const total=gradeRows.length*MYP_ASPECTS.length||1;
+    const exemplary=MYP_ASPECTS.reduce((s,a)=>s+gradeRows.filter(r=>r[ASPECT_FIELDS[a]]==='Exemplary').length,0);
+    const consistent=MYP_ASPECTS.reduce((s,a)=>s+gradeRows.filter(r=>r[ASPECT_FIELDS[a]]==='Consistent').length,0);
+    const strong=exemplary+consistent;
+    const pct=Math.round((strong/total)*100);
+    return{label:grade,exemplary,consistent,pct,total};
+  });
+
+  const statCard=(item,color)=>`<div class="card" style="padding:14px;border-top:3px solid ${color}">
+    <div style="font-size:10px;font-weight:800;color:${color};text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">${e(item.label)}</div>
+    <div style="display:flex;gap:10px;margin-bottom:8px">
+      <div style="text-align:center">
+        <div style="font-size:18px;font-weight:900;color:var(--success)">${item.exemplary}</div>
+        <div style="font-size:9px;color:var(--muted)">Exemplary</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:18px;font-weight:900;color:var(--info)">${item.consistent}</div>
+        <div style="font-size:9px;color:var(--muted)">Consistent</div>
+      </div>
+      <div style="text-align:center;margin-left:auto">
+        <div style="font-size:18px;font-weight:900;color:${item.pct>=70?'var(--success)':item.pct>=40?'var(--warn)':'var(--danger)'}">${item.pct}%</div>
+        <div style="font-size:9px;color:var(--muted)">Developing</div>
+      </div>
+    </div>
+    <div class="pbar"><div class="pbar-fill" style="width:${item.pct}%;background:${item.pct>=70?'var(--success)':item.pct>=40?'var(--warn)':'var(--danger)'}"></div></div>
+  </div>`;
+
+  return`
+    <div style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:12px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:1px">By Subject Area</div>
+      <div style="flex:1;height:1px;background:var(--burg-light)"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:18px">
+      ${bySubject.map(s=>statCard(s,'var(--burg)')).join('')}
+    </div>
+    <div style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:12px;font-weight:800;color:var(--gold-dark);text-transform:uppercase;letter-spacing:1px">By Grade Level</div>
+      <div style="flex:1;height:1px;background:var(--gold-light)"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px">
+      ${byGrade.map(g=>statCard(g,'var(--gold-dark)')).join('')}
+    </div>`;
+}
+
+function renderImpl(){
+  const rows=DB.implData;
+
+  // Group impl rows by subject via teacher lookup
+  const groupedBySubject={};
+  SUBJECTS.forEach(subj=>{
+    const subjectRows=rows.filter(r=>{const t=DB.teachers.find(x=>x.id===r.teacher_id);return t&&t.subject===subj;});
+    if(subjectRows.length) groupedBySubject[subj]=subjectRows;
+  });
+  // Also collect rows with no matching teacher (manually added without teacher link)
+  const unmatchedRows=rows.filter(r=>!DB.teachers.find(x=>x.id===r.teacher_id));
+
+  document.getElementById('tab-impl').innerHTML=`
+    <div class="sec-header"><div class="sec-title">MYP Implementation Tracker</div><div class="sec-sub">Grouped by subject area · Grade level stats · Click any rating to update</div></div>
+
+    <!-- STAT BOXES -->
+    ${implStatBoxes(rows)}
+
+    <!-- SUBJECT TABLES -->
+    ${SUBJECTS.map(subj=>{
+      const subjectRows=groupedBySubject[subj]||[];
+      return`<div class="mb-22">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="font-size:11px;font-weight:800;color:var(--gold-dark);text-transform:uppercase;letter-spacing:1.2px">${e(subj)}</div>
+          <div style="flex:1;height:1px;background:var(--border)"></div>
+          <button class="btn btn-primary btn-sm" onclick="showImplForm('${e(subj)}')">+ Add Teacher</button>
+        </div>
+        <div class="card-table ov-auto">
+          <table><thead><tr>
+            <th>Teacher Name</th>
+            <th>Grade Level</th>
+            ${MYP_ASPECTS.map(a=>`<th style="text-align:center;min-width:120px">${e(a)}</th>`).join('')}
+            <th>Notes</th>
+            <th>Last Observed</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            ${subjectRows.length===0?`<tr><td colspan="${MYP_ASPECTS.length+5}" class="empty">No teachers added yet. Click "+ Add Teacher" to get started.</td></tr>`:''}
+            ${subjectRows.map(row=>{
+              const t=DB.teachers.find(x=>x.id===row.teacher_id);
+              const name=t?t.name:row.teacher_name||'Unknown';
+              return`<tr id="impl-${row.id}">
+                <td class="fw-600"><span class="editable" ondblclick="editImplTeacherName(${row.id},this)">${e(name)}</span></td>
+                <td><select class="inline-select" onchange="updateImpl(${row.id},'grade_level',this.value)">${selOpts(['— Grade —',...GRADES],row.grade_level||'— Grade —')}</select></td>
+                ${MYP_ASPECTS.map(a=>{const f=ASPECT_FIELDS[a];const v=row[f]||'Not Evident';const c=IC[v];return`<td style="text-align:center"><select class="inline-select" onchange="updateImpl(${row.id},'${f}',this.value)" style="background:${c.bg};color:${c.t};font-weight:700;border-color:${c.t}">${selOpts(IMPL_SCALE,v)}</select></td>`;}).join('')}
+                <td><span class="editable" ondblclick="editImplNotes(${row.id},this)">${e(row.notes)||'—'}</span></td>
+                <td class="text-muted fs-11">${e(row.last_observed)||'—'}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteImpl(${row.id})">✕</button></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        </div>
+        <div id="impl-form-${e(subj.replace(/[^a-z0-9]/gi,'_'))}"></div>
+      </div>`;
+    }).join('')}
+    ${unmatchedRows.length>0?`<div class="mb-22">
+      <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">Other</div>
+      <div class="card-table ov-auto"><table><thead><tr><th>Teacher</th><th>Grade Level</th>${MYP_ASPECTS.map(a=>`<th style="text-align:center">${e(a)}</th>`).join('')}<th>Notes</th><th>Last Observed</th><th></th></tr></thead>
+      <tbody>${unmatchedRows.map(row=>`<tr>
+        <td class="fw-600">${e(row.teacher_name||'—')}</td>
+        <td><select class="inline-select" onchange="updateImpl(${row.id},'grade_level',this.value)">${selOpts(['— Grade —',...GRADES],row.grade_level||'— Grade —')}</select></td>
+        ${MYP_ASPECTS.map(a=>{const f=ASPECT_FIELDS[a];const v=row[f]||'Not Evident';const c=IC[v];return`<td style="text-align:center"><select class="inline-select" onchange="updateImpl(${row.id},'${f}',this.value)" style="background:${c.bg};color:${c.t};font-weight:700;border-color:${c.t}">${selOpts(IMPL_SCALE,v)}</select></td>`;}).join('')}
+        <td><span class="editable" ondblclick="editImplNotes(${row.id},this)">${e(row.notes)||'—'}</span></td>
+        <td class="text-muted fs-11">${e(row.last_observed)||'—'}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteImpl(${row.id})">✕</button></td>
+      </tr>`).join('')}</tbody></table></div>
+    </div>`:''}
+
+    <!-- IB TERMINOLOGY LEGEND -->
+    <div class="card" style="margin-top:10px;border-top:3px solid var(--burg)">
+      <div style="font-size:12px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">📖 IB Implementation Rating Scale — Definitions</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+        ${[
+          {rating:'Not Evident',color:'var(--danger)',bg:'var(--danger-light)',def:'The teacher shows little to no evidence of incorporating this MYP element into their planning, teaching, or assessment. The practice is absent or inconsistent to the point of not being observable.'},
+          {rating:'Developing',color:'var(--warn)',bg:'var(--warn-light)',def:'The teacher demonstrates an emerging understanding and beginning application of this MYP element. Evidence is present but inconsistent. The teacher is building competency and moving toward more intentional integration.'},
+          {rating:'Consistent',color:'var(--info)',bg:'var(--info-light)',def:'The teacher regularly and intentionally incorporates this MYP element into planning and instruction. Evidence is clear and observable across multiple lessons or units. Practice is reliable but may not yet be fully refined.'},
+          {rating:'Exemplary',color:'var(--success)',bg:'var(--success-light)',def:'The teacher demonstrates a deep, sophisticated, and sustained integration of this MYP element. Practice is seamless, reflective, and serves as a model for colleagues. The teacher can articulate and justify their approach in IB terms.'},
+        ].map(item=>`<div style="background:${item.bg};border-radius:10px;padding:14px">
+          <div style="font-size:12px;font-weight:800;color:${item.color};margin-bottom:8px">${item.rating}</div>
+          <div style="font-size:12px;color:var(--text);line-height:1.6">${item.def}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function showImplForm(subject){
+  const key=subject.replace(/[^a-z0-9]/gi,'_');
+  const el=document.getElementById('impl-form-'+key);
+  if(!el)return;
+  el.innerHTML=`<div class="form-panel" style="margin-top:10px">
+    <div class="form-panel-title">Add Teacher — ${e(subject)}</div>
+    <div class="form-grid form-grid-3 mb-10">
+      <input class="inp" id="ni-name-${key}"/>
+      <select class="inp" id="ni-grade-${key}">${selOpts(['— Grade —',...GRADES],'— Grade —')}</select>
+      <div></div>
+      ${MYP_ASPECTS.map(a=>`<div><label style="font-size:11px;font-weight:600;color:var(--burg);display:block;margin-bottom:4px">${e(a)}</label>
+        <select class="inp" id="ni-${ASPECT_FIELDS[a]}-${key}">${selOpts(IMPL_SCALE,'Not Evident')}</select>
+      </div>`).join('')}
+    </div>
+    <input class="inp" id="ni-notes-${key}" style="margin-bottom:10px"/>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addImplRow('${e(subject)}','${key}')">Add</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('impl-form-${key}').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+}
+
+async function addImplRow(subject, key){
+  const name=document.getElementById('ni-name-'+key).value.trim();
+  if(!name){alert('Teacher name required.');return;}
+  // Find or match teacher by name and subject
+  let teacher=DB.teachers.find(t=>t.name.toLowerCase()===name.toLowerCase()&&t.subject===subject);
+  const data={
+    teacher_id:teacher?teacher.id:null,
+    teacher_name:name,
+    grade_level:document.getElementById('ni-grade-'+key).value,
+    atl_skills:document.getElementById('ni-atl_skills-'+key).value,
+    global_contexts:document.getElementById('ni-global_contexts-'+key).value,
+    approaches_to_teaching:document.getElementById('ni-approaches_to_teaching-'+key).value,
+    learner_profile:document.getElementById('ni-learner_profile-'+key).value,
+    notes:document.getElementById('ni-notes-'+key).value,
+    last_observed:new Date().toLocaleDateString(),
+  };
+  const saved=await sbInsert('impl_data',data);
+  DB.implData.push(saved||{...data,id:Date.now()});
+  renderImpl();toast('Teacher added');
+}
+
+async function editImplTeacherName(id,el){
+  const row=DB.implData.find(r=>r.id===id);if(!row)return;
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=row.teacher_name||'';
+  inp.style.width='150px';el.replaceWith(inp);inp.focus();
+  async function save(){
+    await sbUpdate('impl_data',id,{teacher_name:inp.value});
+    row.teacher_name=inp.value;renderImpl();toast('Saved');
+  }
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function updateImpl(id,field,val){
+  const row=DB.implData.find(r=>r.id===id);if(!row)return;
+  const upd=field==='grade_level'?{grade_level:val}:{[field]:val,last_observed:new Date().toLocaleDateString()};
+  await sbUpdate('impl_data',id,upd);
+  Object.assign(row,upd);
+  renderImpl();toast('Updated');
+}
+async function editImplNotes(id,el){
+  const row=DB.implData.find(r=>r.id===id);if(!row)return;
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=row.notes||'';
+  inp.style.width='140px';el.replaceWith(inp);inp.focus();
+  async function save(){
+    await sbUpdate('impl_data',id,{notes:inp.value});
+    row.notes=inp.value;renderImpl();toast('Saved');
+  }
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function deleteImpl(id){
+  if(!confirm('Remove from tracker?'))return;
+  await sbDelete('impl_data',id);
+  DB.implData=DB.implData.filter(r=>r.id!==id);renderImpl();toast('Removed');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PD & COMPLIANCE
+// ─────────────────────────────────────────────────────────────────────────────
+const MONTHS=['—','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const YEARS=['—',...Array.from({length:17},(_,i)=>(2019+i).toString())];
+
+function dateTrainedSelect(id,field,val){
+  const parts=(val||'').split('/');
+  const mon=parts[0]||'—';
+  const yr=parts[1]||'—';
+  return`<div style="display:flex;gap:3px;align-items:center">
+    <select class="inline-select" style="padding:3px 4px;font-size:10px" onchange="updateDateTrained(${id},'${field}','month',this.value,'${e(val)}')">
+      ${MONTHS.map(m=>`<option${m===mon?' selected':''}>${m}</option>`).join('')}
+    </select>
+    <select class="inline-select" style="padding:3px 4px;font-size:10px" onchange="updateDateTrained(${id},'${field}','year',this.value,'${e(val)}')">
+      ${YEARS.map(y=>`<option${y===yr?' selected':''}>${y}</option>`).join('')}
+    </select>
+  </div>`;
+}
+
+function renderPD(){
+  const fullyT=DB.teachers.filter(t=>t.cat1&&t.cat2&&t.cat3).length;
+  const partial=DB.teachers.filter(t=>(t.cat1||t.cat2||t.cat3)&&!(t.cat1&&t.cat2&&t.cat3)).length;
+  const none=DB.teachers.filter(t=>!t.cat1&&!t.cat2&&!t.cat3).length;
+  const cat1=DB.teachers.filter(t=>t.cat1).length;
+  const cat2=DB.teachers.filter(t=>t.cat2).length;
+  const cat3=DB.teachers.filter(t=>t.cat3).length;
+
+  document.getElementById('tab-pd').innerHTML=`
+    <div class="sec-header"><div class="sec-title">PD & Staff Compliance</div><div class="sec-sub">IB Category Trainings · Double-click teacher name to edit</div></div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:22px">
+      ${[
+        {l:'Fully Trained',n:fullyT,c:'var(--success)',bg:'var(--success-light)'},
+        {l:'Partial Training',n:partial,c:'var(--warn)',bg:'var(--warn-light)'},
+        {l:'No Training Yet',n:none,c:'var(--danger)',bg:'var(--danger-light)'},
+        {l:'Cat 1 Complete',n:cat1+'/'+DB.teachers.length,c:'var(--burg)',bg:'var(--burg-light)'},
+        {l:'Cat 2 Complete',n:cat2+'/'+DB.teachers.length,c:'var(--burg)',bg:'var(--burg-light)'},
+        {l:'Cat 3 Complete',n:cat3+'/'+DB.teachers.length,c:'var(--burg)',bg:'var(--burg-light)'},
+      ].map(s=>`<div class="card" style="background:${s.bg};border:none;padding:14px">
+        <div class="stat-big" style="color:${s.c};font-size:22px">${s.n}</div>
+        <div class="fw-700 fs-11" style="color:${s.c};margin-top:2px">${s.l}</div>
+      </div>`).join('')}
+    </div>
+    <div class="card-table mb-14 ov-auto">
+      <table><thead><tr>
+        <th>Teacher</th>
+        <th>Subject</th>
+        <th style="text-align:center;width:20px">Cat 1</th>
+        <th style="text-align:center;width:20px">Cat 2</th>
+        <th style="text-align:center;width:20px">Cat 3</th>
+        <th>Date Trained</th>
+        <th>Notes</th>
+        <th></th>
+      </tr></thead>
+      <tbody>${DB.teachers.map(t=>{
+        return`<tr id="tr-${t.id}">
+          <td><span class="editable" ondblclick="editTeacherField(${t.id},'name',this)">${e(t.name)}</span></td>
+          <td><select class="inline-select" onchange="updateTeacherSubject(${t.id},this.value)">${selOpts(SUBJECTS,t.subject)}</select></td>
+          <td style="text-align:center;padding:6px 4px"><span style="font-size:13px;font-weight:800;color:${t.cat1?'var(--success)':'var(--danger)'}">${t.cat1?'✓':'✗'}</span></td>
+          <td style="text-align:center;padding:6px 4px"><span style="font-size:13px;font-weight:800;color:${t.cat2?'var(--success)':'var(--danger)'}">${t.cat2?'✓':'✗'}</span></td>
+          <td style="text-align:center;padding:6px 4px"><span style="font-size:13px;font-weight:800;color:${t.cat3?'var(--success)':'var(--danger)'}">${t.cat3?'✓':'✗'}</span></td>
+          <td style="padding:6px 8px">${dateTrainedSelect(t.id,'date_trained',t.date_trained||'')}</td>
+          <td><span class="editable" ondblclick="editTeacherField(${t.id},'notes',this)">${e(t.notes||'—')}</span></td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteTeacher(${t.id})">✕</button></td>
+        </tr>`;
+      }).join('')}</tbody></table>
+    </div>
+    <button class="btn btn-primary" onclick="showPDForm()">+ Add Teacher</button>
+    <div id="pd-form"></div>`;
+}
+
+async function updateDateTrained(id, field, part, val, currentVal){
+  const t=DB.teachers.find(x=>x.id===id);if(!t)return;
+  const parts=(currentVal||'').split('/');
+  let mon=parts[0]||'—';
+  let yr=parts[1]||'—';
+  if(part==='month') mon=val;
+  if(part==='year') yr=val;
+  const newVal=(mon==='—'&&yr==='—')?'':`${mon}/${yr}`;
+  await sbUpdate('teachers',id,{date_trained:newVal});
+  t.date_trained=newVal;
+  toast('Date saved');
+}
+async function editTeacherField(id,field,el){
+  const t=DB.teachers.find(x=>x.id===id);if(!t)return;
+  const orig=String(t[field]||'');
+  const inp=document.createElement('input');
+  inp.className='inline-input';inp.value=orig;
+  inp.style.width=field==='notes'?'200px':'120px';
+  el.replaceWith(inp);inp.focus();inp.select();
+  async function save(){
+    const val=inp.value;
+    await sbUpdate('teachers',id,{[field]:val});
+    t[field]=val;renderPD();updatePulse();toast('Saved');
+  }
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function toggleCat(id,cat,val){
+  const t=DB.teachers.find(x=>x.id===id);if(!t)return;
+  await sbUpdate('teachers',id,{[cat]:val});
+  t[cat]=val;updatePulse();toast(val?'Training marked complete':'Training unmarked');
+}
+async function updateTeacherSubject(id,val){
+  const t=DB.teachers.find(x=>x.id===id);if(!t)return;
+  await sbUpdate('teachers',id,{subject:val});t.subject=val;toast('Subject updated');
+}
+async function deleteTeacher(id){
+  if(!confirm('Remove this teacher? This will also remove their implementation data.'))return;
+  await sbDelete('teachers',id);
+  DB.teachers=DB.teachers.filter(t=>t.id!==id);
+  DB.implData=DB.implData.filter(r=>r.teacher_id!==id);
+  renderPD();updatePulse();toast('Teacher removed');
+}
+function showPDForm(){
+  const el=document.getElementById('pd-form');
+  el.innerHTML=`<div class="form-panel" style="margin-top:14px">
+    <div class="form-panel-title">Add Teacher</div>
+    <div class="form-grid form-grid-2 mb-10">
+      <input class="inp" id="nt-name"/>
+      <select class="inp" id="nt-subj">${selOpts(SUBJECTS,SUBJECTS[0])}</select>
+    </div>
+    <div class="flex gap-16 mb-10 flex-wrap">
+      ${['Cat 1','Cat 2','Cat 3'].map((c,i)=>`<label class="flex items-center gap-6 fs-13" style="cursor:pointer">
+        <input type="checkbox" id="nt-c${i+1}" style="accent-color:var(--burg);width:15px;height:15px"/> ${c} Trained
+      </label>`).join('')}
+    </div>
+    <div class="flex gap-8 mb-10 items-center">
+      <span class="fs-12 fw-600">Date Trained:</span>
+      <select class="inp" id="nt-month" style="width:90px">${MONTHS.map(m=>`<option>${m}</option>`).join('')}</select>
+      <select class="inp" id="nt-year" style="width:90px">${YEARS.map(y=>`<option>${y}</option>`).join('')}</select>
+    </div>
+    <input class="inp" id="nt-notes" style="margin-bottom:10px"/>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addTeacher()">Add</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('pd-form').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+}
+async function addTeacher(){
+  const name=document.getElementById('nt-name').value.trim();
+  if(!name){alert('Name required.');return;}
+  const mon=document.getElementById('nt-month').value;
+  const yr=document.getElementById('nt-year').value;
+  const dateTrained=(mon==='—'&&yr==='—')?'':`${mon}/${yr}`;
+  const data={name,subject:document.getElementById('nt-subj').value,
+    cat1:document.getElementById('nt-c1').checked,
+    cat2:document.getElementById('nt-c2').checked,
+    cat3:document.getElementById('nt-c3').checked,
+    date_trained:dateTrained,
+    notes:document.getElementById('nt-notes').value,
+    hours:0};
+  const saved=await sbInsert('teachers',data);
+  if(saved){
+    DB.teachers.push(saved);
+    const impl=await sbInsert('impl_data',{teacher_id:saved.id,teacher_name:name,grade_level:'',atl_skills:'Not Evident',global_contexts:'Not Evident',approaches_to_teaching:'Not Evident',learner_profile:'Not Evident',notes:'',last_observed:''});
+    if(impl)DB.implData.push(impl);
+  }
+  document.getElementById('pd-form').innerHTML='';
+  renderPD();updatePulse();toast('Teacher added');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IB PROJECTS
+// ─────────────────────────────────────────────────────────────────────────────
+function renderProjects(){
+  const listHTML=`<div class="card-table ov-auto">
+    <table><thead><tr><th>Project</th><th>Due Date</th><th>Status</th><th>Priority</th><th>Assigned To</th><th>Notes</th><th></th></tr></thead>
+    <tbody>${DB.projects.length===0?`<tr><td colspan="7" class="empty">No projects yet.</td></tr>`:''}
+    ${DB.projects.map(p=>`<tr>
+      <td><span class="editable" ondblclick="editProjField(${p.id},'name',this)">${e(p.name)}</span></td>
+      <td><span class="editable" ondblclick="editProjDate(${p.id},this)">${e(p.due_date)||'—'}</span></td>
+      <td><select class="inline-select" onchange="updateProjField(${p.id},'status',this.value)">${selOpts(PROJ_ST,p.status)}</select></td>
+      <td><select class="inline-select" onchange="updateProjField(${p.id},'priority',this.value)" style="background:${PC[p.priority].bg};color:${PC[p.priority].t}">${selOpts(PRIORITIES,p.priority)}</select></td>
+      <td><span class="editable" ondblclick="editProjField(${p.id},'assigned_to',this)">${e(p.assigned_to)}</span></td>
+      <td style="max-width:150px"><span class="editable" ondblclick="editProjField(${p.id},'notes',this)" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${e(p.notes)||'—'}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})">✕</button></td>
+    </tr>`).join('')}</tbody></table>
+  </div>`;
+
+  const kanbanHTML=`<div class="kanban">${PROJ_ST.map(st=>{
+    const items=DB.projects.filter(p=>p.status===st);const c=PSC[st];
+    return`<div><div class="k-head" style="background:${c.bg};color:${c.t}">${e(st)} · ${items.length}</div>
+      <div class="k-body">${items.map(p=>`<div class="card" style="padding:12px">
+        <div class="fw-700 fs-12 mb-6">${e(p.name)}</div>
+        ${badge(p.priority,{bg:PC[p.priority].bg,t:PC[p.priority].t})}
+        ${p.due_date?`<div class="text-muted" style="font-size:10px;margin-top:4px">Due ${p.due_date}</div>`:''}
+        <div class="text-muted" style="font-size:10px">${e(p.assigned_to)}</div>
+        <div class="flex gap-6" style="margin-top:8px">
+          <select class="inline-select" onchange="updateProjField(${p.id},'status',this.value)">${selOpts(PROJ_ST,p.status)}</select>
+          <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})">✕</button>
+        </div>
+      </div>`).join('')}${items.length===0?'<div style="font-size:11px;color:var(--border);text-align:center;margin-top:16px">Empty</div>':''}
+      </div></div>`;
+  }).join('')}</div>`;
+
+  document.getElementById('tab-projects').innerHTML=`
+    <div class="sec-header"><div class="sec-title">💪🏾 Pierre's Projects</div><div class="sec-sub">Coordinator-level projects · List & Kanban · Double-click to edit</div></div>
+    <div class="flex items-center gap-8 mb-18">
+      <button class="pill ${projView==='list'?'pill-on':'pill-off'}" onclick="setProjView('list')">≡ List</button>
+      <button class="pill ${projView==='kanban'?'pill-on':'pill-off'}" onclick="setProjView('kanban')">⊞ Kanban</button>
+      <div class="ml-auto"><button class="btn btn-primary" onclick="showProjectForm()">+ New Project</button></div>
+    </div>
+    <div id="proj-form-wrap"></div>
+    <div id="proj-list">${projView==='list'?listHTML:''}</div>
+    <div id="proj-kanban">${projView==='kanban'?kanbanHTML:''}</div>`;
+}
+function setProjView(v){projView=v;renderProjects();}
+async function editProjField(id,field,el){
+  const p=DB.projects.find(x=>x.id===id);if(!p)return;
+  const orig=p[field]||'';
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=orig;
+  inp.style.width=Math.max(100,orig.length*8+30)+'px';el.replaceWith(inp);inp.focus();inp.select();
+  async function save(){
+    await sbUpdate('projects',id,{[field]:inp.value});p[field]=inp.value;renderProjects();toast('Saved');
+  }
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function editProjDate(id,el){
+  const p=DB.projects.find(x=>x.id===id);if(!p)return;
+  const inp=document.createElement('input');inp.type='date';inp.className='inline-input';inp.value=p.due_date||'';
+  el.replaceWith(inp);inp.focus();
+  async function save(){await sbUpdate('projects',id,{due_date:inp.value});p.due_date=inp.value;renderProjects();toast('Saved');}
+  inp.addEventListener('blur',save);
+}
+async function updateProjField(id,field,val){
+  const p=DB.projects.find(x=>x.id===id);if(!p)return;
+  await sbUpdate('projects',id,{[field]:val});p[field]=val;renderProjects();toast('Updated');
+}
+async function deleteProject(id){
+  if(!confirm('Delete this project?'))return;
+  await sbDelete('projects',id);DB.projects=DB.projects.filter(p=>p.id!==id);renderProjects();toast('Deleted');
+}
+function showProjectForm(){
+  document.getElementById('proj-form-wrap').innerHTML=`<div class="form-panel mb-14">
+    <div class="form-panel-title">New Project</div>
+    <div class="form-grid form-grid-3 mb-10">
+      <input class="inp" id="np-name" style="grid-column:1/3"/>
+      <input type="date" class="inp" id="np-due"/>
+      <select class="inp" id="np-st">${selOpts(PROJ_ST,'Not Started')}</select>
+      <select class="inp" id="np-pri">${selOpts(PRIORITIES,'Medium')}</select>
+      <input class="inp" id="np-assign" value="Ms. Pierre"/>
+    </div>
+    <textarea class="inp" id="np-notes" rows="2" style="margin-bottom:10px"></textarea>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addProject()">Add Project</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('proj-form-wrap').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+}
+async function addProject(){
+  const name=document.getElementById('np-name').value.trim();if(!name){alert('Name required.');return;}
+  const data={name,due_date:document.getElementById('np-due').value,status:document.getElementById('np-st').value,
+    priority:document.getElementById('np-pri').value,assigned_to:document.getElementById('np-assign').value,
+    notes:document.getElementById('np-notes').value};
+  const saved=await sbInsert('projects',data);
+  DB.projects.push(saved||{...data,id:Date.now()});
+  document.getElementById('proj-form-wrap').innerHTML='';renderProjects();toast('Project added');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IB CALENDAR
+// ─────────────────────────────────────────────────────────────────────────────
+let calView='week';
+let calMonth=new Date().getMonth();
+let calYear=new Date().getFullYear();
+
+// Weekly schedule state — stored in localStorage
+function getWeekSchedule(){
+  try{return JSON.parse(localStorage.getItem('ib_week_schedule'))||{};}catch{return{};}
+}
+function saveWeekSchedule(data){
+  localStorage.setItem('ib_week_schedule',JSON.stringify(data));
+}
+function getWeekStart(offset=0){
+  const today=new Date();
+  const day=today.getDay();
+  const monday=new Date(today);
+  monday.setDate(today.getDate()-(day===0?6:day-1)+(offset*7));
+  monday.setHours(0,0,0,0);
+  return monday;
+}
+let weekOffset=0;
+let blockTitles=JSON.parse(localStorage.getItem('ib_block_titles')||'["Block 1","Block 2","Lunch","Block 3","Block 4"]');
+
+const MONTHS_FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_COLORS={
+  '—':            {bg:'#fff',      text:'var(--muted)',    border:'var(--border)',  col:'#fff'},
+  'Burgundy Day': {bg:'#f5e8ed',   text:'var(--burg)',     border:'var(--burg)',    col:'#f5e8ed'},
+  'Gold Day':     {bg:'var(--gold-light)', text:'var(--gold-dark)', border:'var(--gold)', col:'#fdf6e3'},
+  'No School':    {bg:'#e5e7eb',   text:'#6b7280',         border:'#9ca3af',        col:'#f3f4f6'},
+};
+
+function renderCalendar(){
+  document.getElementById('tab-calendar').innerHTML=`
+    <div class="sec-header"><div class="sec-title">IB Calendar</div><div class="sec-sub">IB · BCPS · New Renaissance deadlines · Monthly & Weekly views</div></div>
+
+    <!-- VIEW TABS -->
+    <div class="flex gap-8 mb-18" style="border-bottom:2px solid var(--border);padding-bottom:12px">
+      <button class="pill ${calView==='week'?'pill-on':'pill-off'}" onclick="setCalView('week')">🗓 Weekly Schedule</button>
+      <button class="pill ${calView==='month'?'pill-on':'pill-off'}" onclick="setCalView('month')">📅 Monthly</button>
+      <button class="pill ${calView==='list'?'pill-on':'pill-off'}" onclick="setCalView('list')">≡ Deadline List</button>
+    </div>
+
+    <!-- MONTHLY VIEW -->
+    <div id="cal-month-view" style="display:${calView==='month'?'block':'none'}">
+      <div class="flex items-center justify-between mb-16">
+        <button class="btn btn-ghost" onclick="changeMonth(-1)">← Prev</button>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--burg)" id="cal-month-label">${MONTHS_FULL[calMonth]} ${calYear}</div>
+        <button class="btn btn-ghost" onclick="changeMonth(1)">Next →</button>
+      </div>
+      <div id="cal-month-grid"></div>
+    </div>
+
+    <!-- WEEKLY VIEW -->
+    <div id="cal-week-view" style="display:${calView==='week'?'block':'none'}">
+      <div class="flex items-center justify-between mb-16">
+        <button class="btn btn-ghost" onclick="changeWeek(-1)">← Prev Week</button>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:900;color:var(--burg)" id="cal-week-label"></div>
+        <button class="btn btn-ghost" onclick="changeWeek(1)">Next Week →</button>
+      </div>
+      <div id="cal-week-grid"></div>
+    </div>
+
+    <!-- DEADLINE LIST VIEW -->
+    <div id="cal-list-view" style="display:${calView==='list'?'block':'none'}">
+      <div class="flex gap-8 mb-14" id="cal-list-filters"></div>
+      <div id="cal-deadline-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px"></div>
+      <button class="btn btn-primary" onclick="showCalForm()">+ Add Deadline</button>
+      <div id="cal-form"></div>
+    </div>`;
+
+  if(calView==='month') renderMonthGrid();
+  if(calView==='week')  renderWeekGrid();
+  if(calView==='list')  renderDeadlineList();
+}
+
+function setCalView(v){calView=v;renderCalendar();}
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  document.getElementById('cal-month-label').textContent=`${MONTHS_FULL[calMonth]} ${calYear}`;
+  renderMonthGrid();
+}
+function changeWeek(dir){weekOffset+=dir;renderWeekGrid();}
+
+function renderMonthGrid(){
+  const firstDay=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0);
+  const startDow=firstDay.getDay(); // 0=Sun
+  const today=new Date();
+  today.setHours(0,0,0,0);
+
+  // Collect deadlines for this month
+  const monthDeadlines=DB.deadlines.filter(d=>{
+    const dd=new Date(d.date);
+    return dd.getMonth()===calMonth&&dd.getFullYear()===calYear;
+  });
+
+  const cells=[];
+  // Leading empty cells
+  for(let i=0;i<startDow;i++) cells.push(null);
+  for(let d=1;d<=lastDay.getDate();d++) cells.push(d);
+
+  const rows=[];
+  for(let i=0;i<cells.length;i+=7) rows.push(cells.slice(i,i+7));
+
+  const el=document.getElementById('cal-month-grid');
+  if(!el)return;
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
+      ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div style="text-align:center;font-size:10px;font-weight:700;color:var(--muted);padding:4px">${d}</div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+      ${rows.flat().map(day=>{
+        if(!day) return`<div style="background:var(--bg);border-radius:8px;min-height:80px"></div>`;
+        const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const cellDate=new Date(calYear,calMonth,day);
+        const isToday=cellDate.getTime()===today.getTime();
+        const dayDeadlines=monthDeadlines.filter(d=>d.date===dateStr);
+        return`<div style="background:${isToday?'var(--burg-light)':'#fff'};border-radius:8px;min-height:80px;padding:6px;border:${isToday?'2px solid var(--burg)':'1px solid var(--border)'}">
+          <div style="font-size:12px;font-weight:${isToday?800:600};color:${isToday?'var(--burg)':'var(--text)'};margin-bottom:4px">${day}</div>
+          ${dayDeadlines.map(d=>{const tc=DTC[d.type]||DTC.IB;return`<div style="background:${tc.bg};color:${tc.t};font-size:9px;font-weight:700;border-radius:4px;padding:2px 5px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${e(d.title)}">${e(d.title)}</div>`;}).join('')}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="flex flex-wrap gap-10" style="margin-top:12px">
+      ${Object.entries(DTC).map(([type,c])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:${c.t}"><span style="width:10px;height:10px;border-radius:3px;background:${c.bg};border:1px solid ${c.t};display:inline-block"></span>${type}</span>`).join('')}
+    </div>`;
+}
+
+function renderWeekGrid(){
+  const weekStart=getWeekStart(weekOffset);
+  const days=Array.from({length:5},(_,i)=>{
+    const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);return d;
+  });
+  const schedule=getWeekSchedule();
+  const weekKey=weekStart.toISOString().slice(0,10);
+
+  const labelEl=document.getElementById('cal-week-label');
+  if(labelEl){
+    const endDay=new Date(weekStart);endDay.setDate(weekStart.getDate()+4);
+    labelEl.textContent=`Week of ${weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${endDay.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+  }
+
+  // Get day colors
+  const dayColorMap={};
+  days.forEach(d=>{
+    const dk=d.toISOString().slice(0,10);
+    dayColorMap[dk]=(schedule[weekKey]?.[dk]?.dayColor)||'—';
+  });
+
+  const el=document.getElementById('cal-week-grid');
+  if(!el)return;
+
+  el.innerHTML=`
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;min-width:700px">
+        <thead>
+          <tr>
+            <th style="width:130px;padding:10px 12px;background:var(--burg);color:#fff;font-size:11px;text-align:left;border-radius:8px 0 0 0">Block</th>
+            ${days.map(d=>{
+              const dk=d.toISOString().slice(0,10);
+              const dayColor=dayColorMap[dk];
+              const dc=DAY_COLORS[dayColor]||DAY_COLORS['—'];
+              const isToday=d.toDateString()===new Date().toDateString();
+              const isNoSchool=dayColor==='No School';
+              return`<th style="padding:8px 10px;background:${dc.col};text-align:center;border:1px solid var(--border)">
+                <div style="font-size:11px;font-weight:800;color:${isNoSchool?'#6b7280':isToday?'var(--burg)':'var(--text)'}">${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>
+                <select class="inline-select" style="margin-top:4px;font-size:10px;background:${dc.bg};color:${dc.text};border-color:${dc.border};font-weight:700" onchange="setDayColor('${weekKey}','${dk}',this.value)">
+                  ${['—','Burgundy Day','Gold Day','No School'].map(opt=>`<option${opt===dayColor?' selected':''}>${opt}</option>`).join('')}
+                </select>
+                ${isNoSchool?`<div style="font-size:9px;font-weight:700;color:#9ca3af;margin-top:3px;text-transform:uppercase;letter-spacing:.5px">No School</div>`:''}
+              </th>`;
+            }).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${blockTitles.map((block,bi)=>{
+            const isLunch=block.toLowerCase().includes('lunch')||bi===2;
+            const rowBg=isLunch?'#fce7f3':'';
+            const rowLabelBg=isLunch?'#f9a8d4':'var(--burg-light)';
+            const rowLabelColor=isLunch?'#9d174d':'var(--burg)';
+            return`<tr>
+              <td style="padding:${isLunch?'5px 12px':'8px 12px'};background:${rowLabelBg};font-weight:700;font-size:12px;color:${rowLabelColor};border:1px solid var(--border);vertical-align:middle">
+                <span ${isLunch?'':'class="editable" ondblclick="editBlockTitle('+bi+',this)" title="Double-click to rename"'}>${e(block)}</span>
+                ${isLunch?`<div style="font-size:10px;font-weight:600;color:#be185d;margin-top:1px">1:00pm – 1:30pm</div>`:''}
+              </td>
+              ${days.map(d=>{
+                const dk=d.toISOString().slice(0,10);
+                const dayColor=dayColorMap[dk];
+                const isNoSchool=dayColor==='No School';
+                const dc=DAY_COLORS[dayColor]||DAY_COLORS['—'];
+                const cellVal=(schedule[weekKey]?.[dk]?.blocks?.[bi])||'';
+                const cellBg=isLunch?'#fce7f3':isNoSchool?'#f3f4f6':dc.col;
+                return`<td style="padding:${isLunch?'5px 8px':'6px 8px'};border:1px solid var(--border);vertical-align:middle;min-width:120px;background:${cellBg};${isLunch?'height:36px':''}">
+                  ${isLunch
+                    ? `<div style="color:#be185d;font-size:11px;font-style:italic;text-align:center;font-weight:600">Lunch</div>`
+                    : isNoSchool
+                      ? `<div style="color:#9ca3af;font-size:11px;font-style:italic;text-align:center">—</div>`
+                      : `<textarea style="width:100%;min-height:55px;border:none;background:transparent;font-size:12px;font-family:'Inter',sans-serif;resize:none;color:var(--text)" onchange="setBlockCell('${weekKey}','${dk}',${bi},this.value)" onblur="setBlockCell('${weekKey}','${dk}',${bi},this.value)">${e(cellVal)}</textarea>`
+                  }
+                </td>`;
+              }).join('')}
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function setDayColor(weekKey,dayKey,val){
+  const s=getWeekSchedule();
+  if(!s[weekKey])s[weekKey]={};
+  if(!s[weekKey][dayKey])s[weekKey][dayKey]={blocks:{}};
+  s[weekKey][dayKey].dayColor=val;
+  saveWeekSchedule(s);
+  renderWeekGrid();
+}
+function setBlockCell(weekKey,dayKey,blockIdx,val){
+  const s=getWeekSchedule();
+  if(!s[weekKey])s[weekKey]={};
+  if(!s[weekKey][dayKey])s[weekKey][dayKey]={blocks:{}};
+  if(!s[weekKey][dayKey].blocks)s[weekKey][dayKey].blocks={};
+  s[weekKey][dayKey].blocks[blockIdx]=val;
+  saveWeekSchedule(s);
+}
+function editBlockTitle(idx,el){
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=blockTitles[idx];inp.style.width='100px';
+  el.replaceWith(inp);inp.focus();inp.select();
+  function save(){
+    blockTitles[idx]=inp.value||blockTitles[idx];
+    localStorage.setItem('ib_block_titles',JSON.stringify(blockTitles));
+    renderWeekGrid();toast('Block renamed');
+  }
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+
+function renderDeadlineList(){
+  const today=new Date();
+  const filtersEl=document.getElementById('cal-list-filters');
+  if(filtersEl) filtersEl.innerHTML=['All',...DL_TYPES].map(t=>`<button class="pill ${calFilter===t?'pill-on':'pill-off'}" onclick="setCalFilter('${t}')">${t}</button>`).join('');
+
+  const filtered=DB.deadlines.map(d=>({...d,dO:new Date(d.date)}))
+    .filter(d=>calFilter==='All'||d.type===calFilter).sort((a,b)=>a.dO-b.dO);
+
+  const listEl=document.getElementById('cal-deadline-list');
+  if(!listEl)return;
+  listEl.innerHTML=filtered.map(d=>{
+    const isPast=d.dO<today;const days=Math.ceil((d.dO-today)/86400000);const tc=DTC[d.type]||DTC.IB;
+    return`<div class="card flex items-center gap-14" style="padding:12px 18px;opacity:${isPast?.55:1}">
+      <div style="min-width:48px;text-align:center">
+        <div style="font-size:18px;font-weight:900;color:var(--burg);font-family:'Playfair Display',serif">${d.dO.getDate()}</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase">${d.dO.toLocaleString('default',{month:'short'})}</div>
+      </div>
+      <div style="flex:1"><span class="editable" ondblclick="editDLTitle(${d.id},this)">${e(d.title)}</span></div>
+      <select class="inline-select" onchange="updateDLField(${d.id},'type',this.value)" style="background:${tc.bg};color:${tc.t}">${selOpts(DL_TYPES,d.type)}</select>
+      <span class="editable" ondblclick="editDLDate(${d.id},this)" style="font-size:11px;color:var(--muted)">${e(d.date)}</span>
+      ${!isPast?`<span style="font-size:12px;font-weight:700;color:${days<=7?'var(--danger)':days<=14?'var(--warn)':'var(--muted)'};min-width:32px;text-align:right">${days}d</span>`:'<span class="text-muted fs-11">Past</span>'}
+      <button class="btn btn-danger btn-sm" onclick="deleteDeadline(${d.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function setCalFilter(f){calFilter=f;renderDeadlineList();}
+async function editDLTitle(id,el){
+  const d=DB.deadlines.find(x=>x.id===id);if(!d)return;
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=d.title;inp.style.width='250px';
+  el.replaceWith(inp);inp.focus();inp.select();
+  async function save(){await sbUpdate('deadlines',id,{title:inp.value});d.title=inp.value;renderDeadlineList();toast('Saved');}
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function editDLDate(id,el){
+  const d=DB.deadlines.find(x=>x.id===id);if(!d)return;
+  const inp=document.createElement('input');inp.type='date';inp.className='inline-input';inp.value=d.date;
+  el.replaceWith(inp);inp.focus();
+  async function save(){await sbUpdate('deadlines',id,{date:inp.value});d.date=inp.value;renderDeadlineList();updatePulse();toast('Saved');}
+  inp.addEventListener('blur',save);
+}
+async function updateDLField(id,field,val){
+  const d=DB.deadlines.find(x=>x.id===id);if(!d)return;
+  await sbUpdate('deadlines',id,{[field]:val});d[field]=val;updatePulse();toast('Updated');
+}
+async function deleteDeadline(id){
+  if(!confirm('Delete this deadline?'))return;
+  await sbDelete('deadlines',id);DB.deadlines=DB.deadlines.filter(d=>d.id!==id);
+  renderDeadlineList();updatePulse();toast('Deleted');
+}
+function showCalForm(){
+  document.getElementById('cal-form').innerHTML=`<div class="form-panel" style="margin-top:14px">
+    <div class="form-panel-title">New Deadline</div>
+    <div class="form-grid form-grid-3 mb-10">
+      <input class="inp" id="nc-title" style="grid-column:1/3"/>
+      <input type="date" class="inp" id="nc-date"/>
+      <select class="inp" id="nc-type">${selOpts(DL_TYPES,'IB')}</select>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addDeadline()">Add</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('cal-form').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+}
+async function addDeadline(){
+  const title=document.getElementById('nc-title').value.trim();
+  const date=document.getElementById('nc-date').value;
+  if(!title||!date){alert('Title and date required.');return;}
+  const data={title,date,type:document.getElementById('nc-type').value};
+  const saved=await sbInsert('deadlines',data);
+  DB.deadlines.push(saved||{...data,id:Date.now()});
+  document.getElementById('cal-form').innerHTML='';renderDeadlineList();updatePulse();toast('Deadline added');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FAMILY COMMS
+// ─────────────────────────────────────────────────────────────────────────────
+function renderFamily(){
+  document.getElementById('tab-family').innerHTML=`
+    <div class="sec-header"><div class="sec-title">Family Communication</div><div class="sec-sub">AI-drafted templates · Communication log · Click to edit inline</div></div>
+    <div class="ai-box">
+      <div class="fw-700 fs-13 text-burg mb-8">Draft a Communication with AI</div>
+      <div class="text-muted fs-12 mb-10">Describe what you need — e.g. "Email to Grade 8 families introducing the Personal Project"</div>
+      <textarea class="inp" id="ai-prompt" rows="3"></textarea>
+      <div class="flex gap-8" style="margin-top:10px">
+        <button class="btn btn-primary" id="ai-btn" onclick="generateDraft()">Generate Draft</button>
+        <button class="btn btn-ghost hidden" id="ai-copy" onclick="navigator.clipboard&&navigator.clipboard.writeText(aiResultText)">Copy</button>
+      </div>
+      <div id="ai-error" class="hidden text-danger fs-12" style="margin-top:8px"></div>
+      <div id="ai-result" class="ai-result hidden"></div>
+    </div>
+    <div class="flex justify-between items-center mb-12">
+      <div class="fw-700 fs-13">Communication Log</div>
+      <button class="btn btn-primary" onclick="showCommForm()">+ Log Entry</button>
+    </div>
+    <div id="comm-form"></div>
+    <div class="card-table">
+      <table><thead><tr><th>Family / Stakeholder</th><th>Topic</th><th>Date</th><th>Method</th><th>Status</th><th></th></tr></thead>
+      <tbody>${DB.comms.length===0?`<tr><td colspan="6" class="empty">No entries yet.</td></tr>`:''}
+      ${DB.comms.map(c=>{const sc=c.status==='Sent'?{bg:'var(--success-light)',t:'var(--success)'}:c.status==='Pending'?{bg:'var(--warn-light)',t:'var(--warn)'}:{bg:'var(--danger-light)',t:'var(--danger)'};
+        return`<tr>
+          <td><span class="editable" ondblclick="editCommField(${c.id},'family',this)">${e(c.family)}</span></td>
+          <td><span class="editable" ondblclick="editCommField(${c.id},'topic',this)">${e(c.topic)||'—'}</span></td>
+          <td class="text-muted">${e(c.date)}</td>
+          <td><select class="inline-select" onchange="updateCommField(${c.id},'method',this.value)">${selOpts(COMM_METHODS,c.method)}</select></td>
+          <td><select class="inline-select" onchange="updateCommField(${c.id},'status',this.value)" style="background:${sc.bg};color:${sc.t}">${selOpts(COMM_ST,c.status)}</select></td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteComm(${c.id})">✕</button></td>
+        </tr>`;}).join('')}
+      </tbody></table>
+    </div>`;
+}
+async function generateDraft(){
+  const prompt=document.getElementById('ai-prompt').value.trim();if(!prompt)return;
+  const btn=document.getElementById('ai-btn');btn.textContent='Drafting…';btn.disabled=true;
+  document.getElementById('ai-error').classList.add('hidden');
+  document.getElementById('ai-result').classList.add('hidden');
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-6',max_tokens:1000,
+      system:`You are an assistant to Ms. Ermina Pierre, IB Coordinator at New Renaissance Middle School in Miramar, Florida. She coordinates the MYP programme for grades 6–8. Draft professional, warm, and clear family communications. Sign off as "Ms. Ermina Pierre, IB Coordinator – New Renaissance Middle School." Write the full message ready to use.`,
+      messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    aiResultText=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+    document.getElementById('ai-result').textContent=aiResultText;
+    document.getElementById('ai-result').classList.remove('hidden');
+    document.getElementById('ai-copy').classList.remove('hidden');
+  }catch(err){
+    document.getElementById('ai-error').textContent='Could not generate draft. Please try again.';
+    document.getElementById('ai-error').classList.remove('hidden');
+  }finally{btn.textContent='Generate Draft';btn.disabled=false;}
+}
+async function editCommField(id,field,el){
+  const c=DB.comms.find(x=>x.id===id);if(!c)return;
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=c[field]||'';
+  inp.style.width='150px';el.replaceWith(inp);inp.focus();
+  async function save(){await sbUpdate('comms',id,{[field]:inp.value});c[field]=inp.value;renderFamily();toast('Saved');}
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function updateCommField(id,field,val){
+  const c=DB.comms.find(x=>x.id===id);if(!c)return;
+  await sbUpdate('comms',id,{[field]:val});c[field]=val;toast('Updated');
+}
+async function deleteComm(id){
+  if(!confirm('Delete?'))return;await sbDelete('comms',id);DB.comms=DB.comms.filter(c=>c.id!==id);renderFamily();toast('Deleted');
+}
+function showCommForm(){
+  document.getElementById('comm-form').innerHTML=`<div class="form-panel mb-14">
+    <div class="form-grid form-grid-4 mb-10">
+      <input class="inp" id="nc-fam"/>
+      <input class="inp" id="nc-top"/>
+      <select class="inp" id="nc-mth">${selOpts(COMM_METHODS,'Email')}</select>
+      <select class="inp" id="nc-st">${selOpts(COMM_ST,'Sent')}</select>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addComm()">Log</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('comm-form').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+}
+async function addComm(){
+  const family=document.getElementById('nc-fam').value.trim();if(!family){alert('Name required.');return;}
+  const data={family,topic:document.getElementById('nc-top').value,date:new Date().toLocaleDateString(),
+    method:document.getElementById('nc-mth').value,status:document.getElementById('nc-st').value};
+  const saved=await sbInsert('comms',data);
+  DB.comms.push(saved||{...data,id:Date.now()});
+  document.getElementById('comm-form').innerHTML='';renderFamily();toast('Logged');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLC LOG
+// ─────────────────────────────────────────────────────────────────────────────
+const PLC_DISCIPLINES=['Language & Literature','Language Acquisition','Individuals & Societies','Sciences','Mathematics','Arts','Physical & Health Education','Design','SVE/ESE'];
+
+function getPlcDisciplines(r){
+  try{return JSON.parse(r.disciplines||'[]');}catch{return[];}
+}
+
+function renderMyPD(){
+  const total=DB.myPD.length;
+
+  // Count per discipline
+  const discCounts={};
+  PLC_DISCIPLINES.forEach(d=>discCounts[d]=0);
+  DB.myPD.forEach(r=>{
+    getPlcDisciplines(r).forEach(d=>{ if(discCounts[d]!==undefined) discCounts[d]++; });
+  });
+
+  document.getElementById('tab-mypd').innerHTML=`
+    <div class="sec-header"><div class="sec-title">PLC Log</div><div class="sec-sub">Professional Learning Community sessions · Track topics, disciplines, and next steps</div></div>
+
+    <!-- STAT BOXES -->
+    <div class="card mb-18" style="padding:18px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        <div class="card" style="padding:14px 22px;border-top:3px solid var(--burg);flex-shrink:0;min-width:130px">
+          <div class="stat-big" style="color:var(--burg);font-size:28px">${total}</div>
+          <div class="fw-700 fs-12">Sessions Logged</div>
+        </div>
+        <div style="flex:1">
+          <div class="fw-700 fs-12 mb-10" style="color:var(--burg)">Meetings Per Discipline</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+            ${PLC_DISCIPLINES.map(d=>{
+              const cnt=discCounts[d];
+              const pct=total===0?0:Math.round((cnt/total)*100);
+              const isSVE=d==='SVE/ESE';
+              return`<div style="background:${isSVE?'#f3f4f6':'var(--burg-light)'};border-radius:8px;padding:8px 12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                  <span style="font-size:10px;font-weight:700;color:${isSVE?'var(--muted)':'var(--burg)'}">${e(d)}</span>
+                  <span style="font-size:13px;font-weight:800;color:${isSVE?'var(--muted)':'var(--burg)'}">${cnt}</span>
+                </div>
+                <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${isSVE?'var(--muted)':'var(--burg)'}"></div></div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="flex justify-between items-center mb-12">
+      <div class="fw-700 fs-13">PLC Sessions</div>
+      <button class="btn btn-primary" onclick="showMyPDForm()">+ Add Session</button>
+    </div>
+    <div id="mypd-form"></div>
+    <div class="card-table ov-auto">
+      <table><thead><tr>
+        <th>Topic</th>
+        <th>Date</th>
+        <th style="min-width:180px">Disciplines</th>
+        <th>Notes</th>
+        <th>Next Meeting Topic</th>
+        <th></th>
+      </tr></thead>
+      <tbody>${DB.myPD.length===0?`<tr><td colspan="6" class="empty">No PLC sessions logged yet.</td></tr>`:''}
+      ${DB.myPD.map(r=>{
+        const disciplines=getPlcDisciplines(r);
+        return`<tr>
+          <td><span class="editable" ondblclick="editMyPDField(${r.id},'title',this)">${e(r.title||'—')}</span></td>
+          <td style="white-space:nowrap"><span class="editable" ondblclick="editMyPDDate(${r.id},this)">${e(r.date)||'—'}</span></td>
+          <td>
+            <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px">
+              ${disciplines.map(d=>`<span style="background:${d==='SVE/ESE'?'#f3f4f6':'var(--burg-light)'};color:${d==='SVE/ESE'?'var(--muted)':'var(--burg)'};font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px">${e(d)}</span>`).join('')}
+              ${disciplines.length===0?`<span style="color:var(--muted);font-size:11px">None selected</span>`:''}
+            </div>
+            <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="editPlcDisciplines(${r.id})">Edit</button>
+          </td>
+          <td><span class="editable" ondblclick="editMyPDField(${r.id},'notes',this)">${e(r.notes||'—')}</span></td>
+          <td><span class="editable" ondblclick="editMyPDField(${r.id},'provider',this)">${e(r.provider||'—')}</span></td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteMyPD(${r.id})">✕</button></td>
+        </tr>`;
+      }).join('')}
+      </tbody></table>
+    </div>`;
+}
+
+function editPlcDisciplines(id){
+  const r=DB.myPD.find(x=>x.id===id);if(!r)return;
+  const current=getPlcDisciplines(r);
+  // Build a checkbox prompt using a floating div
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML=`<div style="background:#fff;border-radius:14px;padding:24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div style="font-weight:800;font-size:14px;color:var(--burg);margin-bottom:14px">Select Disciplines</div>
+    ${PLC_DISCIPLINES.map(d=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)">
+      <input type="checkbox" value="${e(d)}" ${current.includes(d)?'checked':''} style="accent-color:var(--burg);width:15px;height:15px"/>
+      <span style="color:${d==='SVE/ESE'?'var(--muted)':'var(--text)'};font-weight:${d==='SVE/ESE'?600:400}">${e(d)}</span>
+    </label>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-success" onclick="savePlcDisciplines(${id})">Save</button>
+      <button class="btn btn-ghost" onclick="this.closest('.plc-overlay').remove()">Cancel</button>
+    </div>
+  </div>`;
+  overlay.className='plc-overlay';
+  document.body.appendChild(overlay);
+}
+async function savePlcDisciplines(id){
+  const overlay=document.querySelector('.plc-overlay');if(!overlay)return;
+  const checked=[...overlay.querySelectorAll('input[type=checkbox]:checked')].map(cb=>cb.value);
+  const r=DB.myPD.find(x=>x.id===id);if(!r)return;
+  const val=JSON.stringify(checked);
+  await sbUpdate('my_pd',id,{disciplines:val});
+  r.disciplines=val;
+  overlay.remove();
+  renderMyPD();toast('Disciplines saved');
+}
+
+async function editMyPDField(id,field,el,isNum=false){
+  const r=DB.myPD.find(x=>x.id===id);if(!r)return;
+  const inp=document.createElement('input');inp.className='inline-input';
+  inp.value=r[field]||'';
+  inp.style.width='180px';el.replaceWith(inp);inp.focus();inp.select();
+  async function save(){
+    await sbUpdate('my_pd',id,{[field]:inp.value});
+    r[field]=inp.value;renderMyPD();toast('Saved');
+  }
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function editMyPDDate(id,el){
+  const r=DB.myPD.find(x=>x.id===id);if(!r)return;
+  const inp=document.createElement('input');inp.type='date';inp.className='inline-input';inp.value=r.date||'';
+  el.replaceWith(inp);inp.focus();
+  async function save(){await sbUpdate('my_pd',id,{date:inp.value});r.date=inp.value;renderMyPD();toast('Saved');}
+  inp.addEventListener('blur',save);
+}
+async function updateMyPDField(id,field,val){
+  const r=DB.myPD.find(x=>x.id===id);if(!r)return;
+  await sbUpdate('my_pd',id,{[field]:val});r[field]=val;renderMyPD();toast('Updated');
+}
+async function deleteMyPD(id){
+  if(!confirm('Delete this session?'))return;
+  await sbDelete('my_pd',id);DB.myPD=DB.myPD.filter(r=>r.id!==id);renderMyPD();toast('Deleted');
+}
+function showMyPDForm(){
+  document.getElementById('mypd-form').innerHTML=`<div class="form-panel mb-14">
+    <div class="form-panel-title">Add PLC Session</div>
+    <div class="form-grid form-grid-2 mb-10">
+      <input class="inp" id="nm-title"/>
+      <input type="date" class="inp" id="nm-date"/>
+      <input class="inp" id="nm-next"/>
+      <input class="inp" id="nm-notes"/>
+    </div>
+    <div style="margin-bottom:10px">
+      <div class="fw-700 fs-12 mb-8" style="color:var(--burg)">Disciplines (select all that apply)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${PLC_DISCIPLINES.map(d=>`<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:${d==='SVE/ESE'?'#f3f4f6':'var(--burg-light)'};padding:4px 10px;border-radius:20px">
+          <input type="checkbox" name="nm-disc" value="${e(d)}" style="accent-color:var(--burg)"/> ${e(d)}
+        </label>`).join('')}
+      </div>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addMyPD()">Add Session</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('mypd-form').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+}
+async function addMyPD(){
+  const title=document.getElementById('nm-title').value.trim();
+  if(!title){alert('Topic required.');return;}
+  const checked=[...document.querySelectorAll('input[name=nm-disc]:checked')].map(cb=>cb.value);
+  const data={
+    title,
+    date:document.getElementById('nm-date').value,
+    provider:document.getElementById('nm-next').value,
+    notes:document.getElementById('nm-notes').value,
+    disciplines:JSON.stringify(checked),
+    type:'PLC',hours:0,certificate:false
+  };
+  const saved=await sbInsert('my_pd',data);
+  DB.myPD.push(saved||{...data,id:Date.now()});
+  document.getElementById('mypd-form').innerHTML='';renderMyPD();toast('PLC session added');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STAKEHOLDER LOG
+// ─────────────────────────────────────────────────────────────────────────────
+function renderStakeholder(){
+  document.getElementById('tab-stakeholder').innerHTML=`
+    <div class="sec-header"><div class="sec-title">Stakeholder Communication Log</div><div class="sec-sub">Key interactions with admin, parents, staff, IB, and district</div></div>
+    <div class="flex justify-between items-center mb-12">
+      <div class="fw-700 fs-13">${DB.stakeholder.length} interaction${DB.stakeholder.length!==1?'s':''} logged</div>
+      <button class="btn btn-primary" onclick="showStakeholderForm()">+ Log Interaction</button>
+    </div>
+    <div id="sh-form"></div>
+    <div class="card-table ov-auto">
+      <table><thead><tr><th>Stakeholder</th><th>Role</th><th>Topic</th><th>Date</th><th>Method</th><th>Outcome</th><th>Follow-Up</th><th></th></tr></thead>
+      <tbody>${DB.stakeholder.length===0?`<tr><td colspan="8" class="empty">No interactions logged yet.</td></tr>`:''}
+      ${DB.stakeholder.map(r=>`<tr>
+        <td><span class="editable" ondblclick="editSHField(${r.id},'stakeholder',this)">${e(r.stakeholder)}</span></td>
+        <td><span class="editable" ondblclick="editSHField(${r.id},'role',this)">${e(r.role)||'—'}</span></td>
+        <td><span class="editable" ondblclick="editSHField(${r.id},'topic',this)">${e(r.topic)||'—'}</span></td>
+        <td class="text-muted">${e(r.date)||'—'}</td>
+        <td><select class="inline-select" onchange="updateSHField(${r.id},'method',this.value)"><option>Meeting</option><option>Email</option><option>Phone Call</option><option>In Person</option><option>Virtual</option><option>Written</option></select></td>
+        <td><span class="editable" ondblclick="editSHField(${r.id},'outcome',this)" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;display:inline-block">${e(r.outcome)||'—'}</span></td>
+        <td style="color:${r.follow_up?'var(--danger)':'var(--muted)'};font-weight:${r.follow_up?700:400}"><span class="editable" ondblclick="editSHField(${r.id},'follow_up',this)">${e(r.follow_up)||'—'}</span></td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteSH(${r.id})">✕</button></td>
+      </tr>`).join('')}
+      </tbody></table>
+    </div>`;
+}
+async function editSHField(id,field,el){
+  const r=DB.stakeholder.find(x=>x.id===id);if(!r)return;
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=r[field]||'';
+  inp.style.width='150px';el.replaceWith(inp);inp.focus();
+  async function save(){await sbUpdate('stakeholder_log',id,{[field]:inp.value});r[field]=inp.value;renderStakeholder();toast('Saved');}
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function updateSHField(id,field,val){
+  const r=DB.stakeholder.find(x=>x.id===id);if(!r)return;
+  await sbUpdate('stakeholder_log',id,{[field]:val});r[field]=val;toast('Updated');
+}
+async function deleteSH(id){
+  if(!confirm('Delete?'))return;await sbDelete('stakeholder_log',id);DB.stakeholder=DB.stakeholder.filter(r=>r.id!==id);renderStakeholder();toast('Deleted');
+}
+function showStakeholderForm(){
+  document.getElementById('sh-form').innerHTML=`<div class="form-panel mb-14">
+    <div class="form-grid form-grid-3 mb-10">
+      <input class="inp" id="ns-name"/>
+      <input class="inp" id="ns-role"/>
+      <input class="inp" id="ns-topic"/>
+      <input type="date" class="inp" id="ns-date"/>
+      <select class="inp" id="ns-method"><option>Meeting</option><option>Email</option><option>Phone Call</option><option>In Person</option><option>Virtual</option><option>Written</option></select>
+      <input class="inp" id="ns-outcome"/>
+    </div>
+    <input class="inp" id="ns-follow" style="margin-bottom:10px"/>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addSH()">Log</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('sh-form').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+}
+async function addSH(){
+  const name=document.getElementById('ns-name').value.trim();if(!name){alert('Name required.');return;}
+  const data={stakeholder:name,role:document.getElementById('ns-role').value,topic:document.getElementById('ns-topic').value,
+    date:document.getElementById('ns-date').value,method:document.getElementById('ns-method').value,
+    outcome:document.getElementById('ns-outcome').value,follow_up:document.getElementById('ns-follow').value};
+  const saved=await sbInsert('stakeholder_log',data);
+  DB.stakeholder.push(saved||{...data,id:Date.now()});
+  document.getElementById('sh-form').innerHTML='';renderStakeholder();toast('Interaction logged');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEETING NOTES
+// ─────────────────────────────────────────────────────────────────────────────
+const MEETING_TYPES=['IB Meeting','Department Meeting','Parent Meeting','Admin Meeting','District Meeting','Other'];
+const MEETING_TYPE_COLORS={
+  'IB Meeting':         {bg:'var(--burg-light)',  t:'var(--burg)'},
+  'Department Meeting': {bg:'var(--gold-light)',   t:'var(--gold-dark)'},
+  'Parent Meeting':     {bg:'#f0fdf4',            t:'#166534'},
+  'Admin Meeting':      {bg:'var(--danger-light)', t:'var(--danger)'},
+  'District Meeting':   {bg:'var(--warn-light)',   t:'var(--warn)'},
+  'Other':              {bg:'#f3f4f6',            t:'var(--muted)'},
+};
+
+function getMtgField(n, field){ return n[field]||n.body||''; }
+
+function renderNotes(){
+  // Sort by date descending
+  const sorted=[...DB.notes].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+  const typeCounts=Object.fromEntries(MEETING_TYPES.map(t=>[t,DB.notes.filter(n=>n.tag===t).length]));
+
+  document.getElementById('tab-notes').innerHTML=`
+    <div class="sec-header"><div class="sec-title">Meeting Notes</div><div class="sec-sub">Full meeting notebook · All types · Most recent first</div></div>
+
+    <!-- STATS -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:22px">
+      <div class="card" style="border-top:3px solid var(--burg);padding:14px">
+        <div class="stat-big" style="color:var(--burg);font-size:26px">${DB.notes.length}</div>
+        <div class="fw-700 fs-11">Total Meetings</div>
+      </div>
+      ${MEETING_TYPES.map(t=>{const c=MEETING_TYPE_COLORS[t];return`<div class="card" style="background:${c.bg};border:none;padding:14px">
+        <div class="stat-big" style="color:${c.t};font-size:22px">${typeCounts[t]}</div>
+        <div class="fw-700 fs-11" style="color:${c.t}">${e(t)}</div>
+      </div>`;}).join('')}
+    </div>
+
+    <!-- ADD BUTTON -->
+    <div class="flex justify-between items-center mb-14">
+      <div></div>
+      <button class="btn btn-primary" onclick="showNoteForm()">+ New Meeting</button>
+    </div>
+    <div id="note-form"></div>
+
+    <!-- MEETING CARDS -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      ${sorted.length===0?'<div class="card"><p class="text-muted fs-13">No meetings logged yet. Add your first one above.</p></div>':''}
+      ${sorted.map(n=>{
+        const tc=MEETING_TYPE_COLORS[n.tag]||MEETING_TYPE_COLORS['Other'];
+        const actionItems=n.action_items||'';
+        const nextSteps=n.next_steps||'';
+        const followUp=n.follow_up_date||'';
+        const location=n.location||'';
+        const attendees=n.attendees||'';
+        const agenda=n.agenda||'';
+        return`<div class="card" style="border-left:4px solid ${tc.t}">
+          <!-- HEADER -->
+          <div class="flex justify-between items-start mb-12">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+                <span class="editable fw-800" style="font-size:15px;color:var(--text)" ondblclick="editNoteField(${n.id},'title',this)">${e(n.title||'Untitled Meeting')}</span>
+                <span class="badge" style="background:${tc.bg};color:${tc.t}">${e(n.tag||'Other')}</span>
+              </div>
+              <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px">
+                <span style="font-size:11px;color:var(--muted)">📅 <span class="editable" ondblclick="editNoteDate(${n.id},this)">${e(n.date)||'No date'}</span></span>
+                ${location?`<span style="font-size:11px;color:var(--muted)">📍 <span class="editable" ondblclick="editNoteField(${n.id},'location',this)">${e(location)}</span></span>`:`<span style="font-size:11px;color:var(--border);cursor:pointer" ondblclick="editNoteField(${n.id},'location',this)">📍 Add location</span>`}
+                ${followUp?`<span style="font-size:11px;color:var(--danger);font-weight:700">🔁 Follow-up: <span class="editable" ondblclick="editNoteField(${n.id},'follow_up_date',this)">${e(followUp)}</span></span>`:`<span style="font-size:11px;color:var(--border);cursor:pointer" ondblclick="editNoteField(${n.id},'follow_up_date',this)">🔁 Add follow-up date</span>`}
+              </div>
+            </div>
+            <div class="flex gap-6 items-center">
+              <select class="inline-select" onchange="updateNoteField(${n.id},'tag',this.value)">${selOpts(MEETING_TYPES,n.tag||'Other')}</select>
+              <button class="btn btn-danger btn-sm" onclick="deleteNote(${n.id})">✕</button>
+            </div>
+          </div>
+
+          <!-- BODY GRID -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div style="font-size:10px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">👥 Attendees</div>
+              <div class="editable" ondblclick="editNoteTextarea(${n.id},'attendees',this)" style="font-size:13px;line-height:1.6;background:var(--bg);padding:8px 12px;border-radius:8px;min-height:40px;cursor:pointer;white-space:pre-wrap" title="Double-click to edit">${e(attendees)||'<span style="color:var(--border)">Click to add attendees…</span>'}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">📋 Agenda</div>
+              <div class="editable" ondblclick="editNoteTextarea(${n.id},'agenda',this)" style="font-size:13px;line-height:1.6;background:var(--bg);padding:8px 12px;border-radius:8px;min-height:40px;cursor:pointer;white-space:pre-wrap" title="Double-click to edit">${e(agenda)||'<span style="color:var(--border)">Click to add agenda…</span>'}</div>
+            </div>
+            <div style="grid-column:1/-1">
+              <div style="font-size:10px;font-weight:800;color:var(--burg);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">📝 Notes</div>
+              <div class="editable" ondblclick="editNoteTextarea(${n.id},'body',this)" style="font-size:13px;line-height:1.6;background:var(--bg);padding:8px 12px;border-radius:8px;min-height:60px;cursor:pointer;white-space:pre-wrap" title="Double-click to edit">${e(n.body)||'<span style="color:var(--border)">Click to add meeting notes…</span>'}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:800;color:var(--warn);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">✅ Action Items</div>
+              <div class="editable" ondblclick="editNoteTextarea(${n.id},'action_items',this)" style="font-size:13px;line-height:1.6;background:var(--warn-light);padding:8px 12px;border-radius:8px;min-height:40px;cursor:pointer;white-space:pre-wrap" title="Double-click to edit">${e(actionItems)||'<span style="color:var(--border)">Click to add action items…</span>'}</div>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:800;color:var(--success);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">➡️ Next Steps</div>
+              <div class="editable" ondblclick="editNoteTextarea(${n.id},'next_steps',this)" style="font-size:13px;line-height:1.6;background:var(--success-light);padding:8px 12px;border-radius:8px;min-height:40px;cursor:pointer;white-space:pre-wrap" title="Double-click to edit">${e(nextSteps)||'<span style="color:var(--border)">Click to add next steps…</span>'}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function showNoteForm(){
+  document.getElementById('note-form').innerHTML=`<div class="form-panel mb-16">
+    <div class="form-panel-title">New Meeting</div>
+    <div class="form-grid form-grid-3 mb-10">
+      <input class="inp" id="nn-title" style="grid-column:1/3"/>
+      <select class="inp" id="nn-tag">${selOpts(MEETING_TYPES,'IB Meeting')}</select>
+      <input type="date" class="inp" id="nn-date"/>
+      <input class="inp" id="nn-location"/>
+      <input type="date" class="inp" id="nn-followup"/>
+    </div>
+    <div class="form-grid form-grid-2 mb-10">
+      <div>
+        <div class="fw-700 fs-12 mb-6" style="color:var(--burg)">Attendees</div>
+        <textarea class="inp" id="nn-attendees" rows="2"></textarea>
+      </div>
+      <div>
+        <div class="fw-700 fs-12 mb-6" style="color:var(--burg)">Agenda</div>
+        <textarea class="inp" id="nn-agenda" rows="2"></textarea>
+      </div>
+      <div style="grid-column:1/-1">
+        <div class="fw-700 fs-12 mb-6" style="color:var(--burg)">Notes</div>
+        <textarea class="inp" id="nn-body" rows="3"></textarea>
+      </div>
+      <div>
+        <div class="fw-700 fs-12 mb-6" style="color:var(--warn)">Action Items</div>
+        <textarea class="inp" id="nn-actions" rows="2"></textarea>
+      </div>
+      <div>
+        <div class="fw-700 fs-12 mb-6" style="color:var(--success)">Next Steps</div>
+        <textarea class="inp" id="nn-nextsteps" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addNote()">Save Meeting</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('note-form').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+}
+
+async function addNote(){
+  const title=document.getElementById('nn-title').value.trim();
+  if(!title){alert('Meeting title required.');return;}
+  const data={
+    title,
+    tag:document.getElementById('nn-tag').value,
+    date:document.getElementById('nn-date').value||new Date().toLocaleDateString(),
+    location:document.getElementById('nn-location').value,
+    follow_up_date:document.getElementById('nn-followup').value,
+    attendees:document.getElementById('nn-attendees').value,
+    agenda:document.getElementById('nn-agenda').value,
+    body:document.getElementById('nn-body').value,
+    action_items:document.getElementById('nn-actions').value,
+    next_steps:document.getElementById('nn-nextsteps').value,
+  };
+  const saved=await sbInsert('notes',data);
+  DB.notes.unshift(saved||{...data,id:Date.now()});
+  document.getElementById('note-form').innerHTML='';renderNotes();toast('Meeting saved');
+}
+
+async function editNoteField(id,field,el){
+  const n=DB.notes.find(x=>x.id===id);if(!n)return;
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=n[field]||'';inp.style.width='250px';
+  el.replaceWith(inp);inp.focus();inp.select();
+  async function save(){await sbUpdate('notes',id,{[field]:inp.value});n[field]=inp.value;renderNotes();toast('Saved');}
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function editNoteDate(id,el){
+  const n=DB.notes.find(x=>x.id===id);if(!n)return;
+  const inp=document.createElement('input');inp.type='date';inp.className='inline-input';inp.value=n.date||'';
+  el.replaceWith(inp);inp.focus();
+  async function save(){await sbUpdate('notes',id,{date:inp.value});n.date=inp.value;renderNotes();toast('Saved');}
+  inp.addEventListener('blur',save);
+}
+async function editNoteTextarea(id,field,el){
+  const n=DB.notes.find(x=>x.id===id);if(!n)return;
+  const ta=document.createElement('textarea');ta.className='inp';ta.value=n[field]||'';ta.rows=4;ta.style.width='100%';
+  el.replaceWith(ta);ta.focus();
+  async function save(){await sbUpdate('notes',id,{[field]:ta.value});n[field]=ta.value;renderNotes();toast('Saved');}
+  ta.addEventListener('blur',save);
+}
+async function updateNoteField(id,field,val){
+  const n=DB.notes.find(x=>x.id===id);if(!n)return;
+  await sbUpdate('notes',id,{[field]:val});n[field]=val;renderNotes();toast('Updated');
+}
+async function deleteNote(id){
+  if(!confirm('Delete this meeting record?'))return;
+  await sbDelete('notes',id);DB.notes=DB.notes.filter(n=>n.id!==id);renderNotes();toast('Deleted');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESOURCES
+// ─────────────────────────────────────────────────────────────────────────────
+function renderResources(){
+  const grouped={};RES_CATS.forEach(cat=>{const items=DB.resources.filter(r=>r.category===cat);if(items.length)grouped[cat]=items;});
+  document.getElementById('tab-resources').innerHTML=`
+    <div class="sec-header"><div class="sec-title">Resources & Document Hub</div><div class="sec-sub">Quick access to IB documents, policies, forms, and guides</div></div>
+    <div class="flex justify-between items-center mb-14"><div></div>
+      <button class="btn btn-primary" onclick="showResForm()">+ Add Resource</button>
+    </div>
+    <div id="res-form"></div>
+    ${DB.resources.length===0?'<div class="card"><p class="text-muted fs-13">No resources added yet.</p></div>':''}
+    ${Object.entries(grouped).map(([cat,items])=>`
+      <div class="mb-22">
+        <div class="fw-800 fs-11 mb-8" style="color:${RCC[cat]?.t||'var(--burg)'};text-transform:uppercase;letter-spacing:1.2px">${e(cat)}</div>
+        <div class="grid-cards">
+          ${items.map(r=>`<div class="card res-card" style="border-top:3px solid ${RCC[r.category]?.t||'var(--burg)'}">
+            <div class="editable fw-700 fs-13 mb-8" ondblclick="editResField(${r.id},'title',this)" title="Double-click to edit">${e(r.title)}</div>
+            <div class="editable text-muted fs-11 mb-8" ondblclick="editResField(${r.id},'description',this)" title="Double-click to edit">${e(r.description)||'Add description…'}</div>
+            <select class="inline-select mb-8" onchange="updateResField(${r.id},'category',this.value)" style="font-size:10px">${selOpts(RES_CATS,r.category)}</select>
+            <div class="flex justify-between items-center" style="margin-top:8px">
+              <div class="editable" ondblclick="editResField(${r.id},'url',this)" style="font-size:11px;color:var(--burg);font-weight:700" title="Double-click to edit URL">
+                ${r.url?`<a href="${e(r.url)}" target="_blank" onclick="event.stopPropagation()">Open →</a>`:'+ Add link'}
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="deleteRes(${r.id})">✕</button>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`).join('')}`;
+}
+async function editResField(id,field,el){
+  const r=DB.resources.find(x=>x.id===id);if(!r)return;
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=r[field]||'';inp.style.width='200px';
+  el.replaceWith(inp);inp.focus();
+  async function save(){await sbUpdate('resources',id,{[field]:inp.value});r[field]=inp.value;renderResources();toast('Saved');}
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+}
+async function updateResField(id,field,val){
+  const r=DB.resources.find(x=>x.id===id);if(!r)return;
+  await sbUpdate('resources',id,{[field]:val});r[field]=val;renderResources();toast('Updated');
+}
+async function deleteRes(id){
+  if(!confirm('Delete?'))return;await sbDelete('resources',id);DB.resources=DB.resources.filter(r=>r.id!==id);renderResources();toast('Deleted');
+}
+function showResForm(){
+  document.getElementById('res-form').innerHTML=`<div class="form-panel mb-18">
+    <div class="form-grid form-grid-2 mb-10">
+      <input class="inp" id="nr-title"/>
+      <select class="inp" id="nr-cat">${selOpts(RES_CATS,'IB Documents')}</select>
+      <input class="inp" id="nr-url" style="grid-column:1/-1"/>
+      <textarea class="inp" id="nr-desc" rows="2" style="grid-column:1/-1"></textarea>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-success" onclick="addRes()">Add</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('res-form').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+}
+async function addRes(){
+  const title=document.getElementById('nr-title').value.trim();if(!title){alert('Title required.');return;}
+  const data={title,category:document.getElementById('nr-cat').value,url:document.getElementById('nr-url').value,description:document.getElementById('nr-desc').value};
+  const saved=await sbInsert('resources',data);
+  DB.resources.push(saved||{...data,id:Date.now()});
+  document.getElementById('res-form').innerHTML='';renderResources();toast('Resource added');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',async()=>{
+  document.getElementById('banner-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Restore bitmoji
+  const bm=localStorage.getItem('ib_bitmoji');
+  if(bm){document.getElementById('bitmoji-img').src=bm;document.getElementById('bitmoji-img').style.display='block';document.getElementById('bitmoji-placeholder').style.display='none';}
+  // Restore OneDrive links
+  try{ DB.oneDriveLinks=JSON.parse(localStorage.getItem('ib_onedrive_links'))||{}; }catch{DB.oneDriveLinks={};}
+  try{
+    await loadAll();
+  } catch(err){
+    console.error('Load error:',err);
+  }
+  updatePulse();
+  renderOverview();
+  document.getElementById('loading').style.display='none';
+});
+</script>
+</body>
+</html>
